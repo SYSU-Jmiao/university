@@ -1,2 +1,1 @@
-# fft-parallella
-A parrallella accelerated FFT  lib
+# University - Master of engineering
