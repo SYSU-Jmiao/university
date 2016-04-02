@@ -26,12 +26,9 @@ class TDDReadDataFromFiles(unittest.TestCase):
         self.assertEqual(sampling_size, result)
 
     def test_matrix_from_files(self):
-        sampling_size = 5
+        sampling_size = 50
         folder_name = current_dir + '/original'
         files_list = mu.listfilesinfolder(folder_name)
         mt = mu.create_matrix_from_filelist(files_list, sampling_size)
-        np.set_printoptions(threshold=np.inf)
-        print(mt.shape)
-        print(mt)
-        # result = mt.values.shape()
-        # print(result)
+        result = mt.shape
+        self.assertEqual(result, (len(files_list), sampling_size))

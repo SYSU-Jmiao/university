@@ -47,11 +47,12 @@ def readlistoffiles(list_of_files, resample=False, resamplesize=0):
 
 
 def create_matrix_from_filelist(files_list, sampling_size):
-    """ Return matrix [len(files_list),sampling_size] of vectores. """
-    m = np.zeros((len(files_list), sampling_size))
-    for f in files_list:
-        v = readfile(f, True, sampling_size)
-        np.c_[m, v]
+    """ Return matrix (len(files_list), (sampling_size)) of vectores. """
+
+    m = np.zeros((len(files_list), (sampling_size)))
+    for idx, val in enumerate(files_list):
+        v = readfile(val, True, sampling_size)[:, 1]
+        m[idx] = v[0]
     return m
 
 
