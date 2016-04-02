@@ -47,13 +47,13 @@ def readlistoffiles(list_of_files, resample=False, resamplesize=0):
 
 
 def create_matrix_from_filelist(files_list, sampling_size):
-    """ Return matrix (len(files_list), (sampling_size)) of vectores. """
+    """ Return matrix ( (sampling_size), len(files_list)) of vectores. """
 
     m = np.zeros((len(files_list), (sampling_size)))
     for idx, val in enumerate(files_list):
         v = readfile(val, True, sampling_size)[:, 1]
         m[idx] = v[0]
-    return m
+    return m.T
 
 
 def readfile(dest_file, resample=False, resamplesize=0):
