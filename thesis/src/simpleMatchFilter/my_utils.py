@@ -2,6 +2,7 @@ import argparse
 import glob
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.signal as signal
 
 
 class __DataLocation:
@@ -25,9 +26,15 @@ def getlocationofdata():
     d = __DataLocation
     d.origin = args.origin[0]
     d.filtered = args.filtered[0]
-    d.originfiles = glob.glob(d.origin + "/*")
-    d.filteredfiles = glob.glob(d.filtered + "/*")
+    d.originfiles = listfilesinfolder(d.origin)
+    d.filteredfiles = listfilesinfolder(d.filtered)
     return d
+
+
+def listfilesinfolder(folder_name):
+    """ Return a list of files in folder. """
+
+    return glob.glob(folder_name+"/*")
 
 
 def readlistoffiles(list_of_files, resample=False, resamplesize=0):
@@ -36,15 +43,22 @@ def readlistoffiles(list_of_files, resample=False, resamplesize=0):
     new_dict = dict()
     for f in list_of_files:
         new_dict[f] = readfile(f, resample, resamplesize)
-        print("key:" + f + ", number of elements:" + str(len(new_dict[f])))
     return new_dict
 
 
+def create_matrix_from_filelist(files_list, sampling_size):
+    """ Return matrix [len(files_list),sampling_size] of vectores. """
+    m = np.zeros((len(files_list), sampling_size))
+    for f in files_list:
+        v = readfile(f, True, sampling_size)
+        np.c_[m, v]
+    return m
+
+
 def readfile(dest_file, resample=False, resamplesize=0):
-    print("loading:" + dest_file)
     data = np.genfromtxt(dest_file, delimiter=',')
     if resample:
-        print("resample requested:" + str(resamplesize))
+        data = signal.resample(data, resamplesize)
     return data
 
 

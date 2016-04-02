@@ -14,8 +14,7 @@ def gram_schmidt(A):
     return Q, R
 
 
-def test():
-    """ Script starts here."""
+def __test():
     A = np.matrix('0 0 1 ; 0 1 0 ; 1 0 0 ')
     Q, R = gram_schmidt(A)
     print(Q)
@@ -23,4 +22,4 @@ def test():
     print(Q*R)
 
 if __name__ == "__main__":
-    test()
+    __test()
