@@ -3,3 +3,9 @@ python-workspace:
   volumes: 
   - "${PWD}:/code"
   working_dir: /code
+
+db:
+        image: mongo 
+        ports:
+                 - "27017:27017"
+                 - "28017:28017"
