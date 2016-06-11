@@ -1,11 +1,12 @@
 Radio signals DB creator
 ========================
 
-This section creates a DB using in frequancy = 1 Ghz for the following Radio modulations:
-0. FM
-0. AM
-0. QAM 16
-0. QAM 32
-0. QAM 64
-0. 2LV1FSK
-0. QPSK
+This section creates a DB of samples for the following Radio modulations:
+
+1. FM
+2. AM
+3. QAM 16
+4. QAM 32
+5. QAM 64
+6. 2LV1FSK
+6. QPSK
