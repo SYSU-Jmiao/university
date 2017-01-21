@@ -2,15 +2,15 @@
 # coding: utf-8
 
 # ## Modulation Recognition Example: RML2016.10a Dataset + VT-CNN2 Mod-Rec Network
-# 
+#
 # More information on this classification method can be found at
 # https://arxiv.org/abs/1602.04105
-# 
+#
 # More information on the RML2016.10a dataset can be found at
 # http://pubs.gnuradio.org/index.php/grcon/article/view/11
-# 
+#
 # Please cite derivative works
-# 
+#
 # ```
 # @article{convnetmodrec,
 #   title={Convolutional Radio Modulation Recognition Networks},
@@ -25,10 +25,10 @@
 #   year={2016}
 # }
 # ```
-# 
+#
 # To run this example, you will need to download or generate the RML2016.10a dataset (https://radioml.com/datasets/)
 # You will also need Keras installed with either the Theano or Tensor Flow backend working.
-# 
+#
 # Have fun!
 
 # In[1]:
@@ -50,10 +50,13 @@ from keras.layers.noise import GaussianNoise
 from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D
 from keras.regularizers import *
 from keras.optimizers import adam
+import matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 import cPickle, random, sys, keras
 
+
+CONST_ARTIFACTS_FOLDER = "./artifacts/"
 
 # # Dataset setup
 
@@ -63,7 +66,7 @@ import cPickle, random, sys, keras
 #  You will need to seperately download or generate this file
 Xd = cPickle.load(open("RML2016.10a_dict.dat",'rb'))
 snrs,mods = map(lambda j: sorted(list(set(map(lambda x: x[j], Xd.keys())))), [1,0])
-X = []  
+X = []
 lbl = []
 for mod in mods:
     for snr in snrs:
@@ -75,7 +78,7 @@ X = np.vstack(X)
 # In[3]:
 
 # Partition the data
-#  into training and test sets of the form we can train/test on 
+#  into training and test sets of the form we can train/test on
 #  while keeping SNR and Mod labels handy for each
 np.random.seed(2016)
 n_examples = X.shape[0]
@@ -104,7 +107,7 @@ classes = mods
 # In[5]:
 
 
-# Build VT-CNN2 Neural Net model using Keras primitives -- 
+# Build VT-CNN2 Neural Net model using Keras primitives --
 #  - Reshape [N,2,128] to [N,1,2,128] on input
 #  - Pass through 2 2DConv/ReLu layers
 #  - Pass through 2 Dense layers (ReLu and Softmax)
@@ -131,7 +134,7 @@ model.summary()
 
 # In[6]:
 
-# Set up some params 
+# Set up some params
 nb_epoch = 100     # number of epochs to train on
 batch_size = 1024  # training batch size
 
@@ -142,7 +145,7 @@ batch_size = 1024  # training batch size
 
 # perform training ...
 #   - call the main training loop in keras for our network+dataset
-filepath = 'convmodrecnets_CNN2_0.5.wts.h5'
+filepath = CONST_ARTIFACTS_FOLDER + 'convmodrecnets_CNN2_0.5.wts.h5'
 history = model.fit(X_train,
     Y_train,
     batch_size=batch_size,
@@ -169,12 +172,13 @@ print score
 
 # In[9]:
 
-# Show loss curves 
+# Show loss curves
 plt.figure()
 plt.title('Training performance')
 plt.plot(history.epoch, history.history['loss'], label='train loss+error')
 plt.plot(history.epoch, history.history['val_loss'], label='val_error')
 plt.legend()
+plt.savefig(CONST_ARTIFACTS_FOLDER + 'loss_curves.png')
 
 
 # In[10]:
@@ -189,6 +193,8 @@ def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Blues, label
     plt.tight_layout()
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
+    # TODO: differ the plots
+    plt.savefig(CONST_ARTIFACTS_FOLDER + title + '.png')
 
 
 # In[11]:
@@ -216,7 +222,7 @@ for snr in snrs:
     # extract classes @ SNR
     test_SNRs = map(lambda x: lbl[x][1], test_idx)
     test_X_i = X_test[np.where(np.array(test_SNRs)==snr)]
-    test_Y_i = Y_test[np.where(np.array(test_SNRs)==snr)]    
+    test_Y_i = Y_test[np.where(np.array(test_SNRs)==snr)]
 
     # estimate classes
     test_Y_i_hat = model.predict(test_X_i)
@@ -230,12 +236,12 @@ for snr in snrs:
         confnorm[i,:] = conf[i,:] / np.sum(conf[i,:])
     plt.figure()
     plot_confusion_matrix(confnorm, labels=classes, title="ConvNet Confusion Matrix (SNR=%d)"%(snr))
-    
+
     cor = np.sum(np.diag(conf))
     ncor = np.sum(conf) - cor
     print "Overall Accuracy: ", cor / (cor+ncor)
     acc[snr] = 1.0*cor/(cor+ncor)
-    
+
 
 
 # In[13]:
@@ -253,9 +259,6 @@ plt.plot(snrs, map(lambda x: acc[x], snrs))
 plt.xlabel("Signal to Noise Ratio")
 plt.ylabel("Classification Accuracy")
 plt.title("CNN2 Classification Accuracy on RadioML 2016.10 Alpha")
-
+plt.savefig(CONST_ARTIFACTS_FOLDER + 'accuracy_curve' + '.png')
 
 # In[ ]:
-
-
-
