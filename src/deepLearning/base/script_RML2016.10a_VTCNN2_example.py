@@ -137,7 +137,8 @@ model.summary()
 
 # Set up some params
 nb_epoch = 100     # number of epochs to train on
-batch_size = 1024  # training batch size
+batch_size = 500  # training batch size
+#batch_size = 1024  # training batch size
 
 
 # # Train the Model
@@ -158,6 +159,11 @@ history = model.fit(X_train,
         keras.callbacks.ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=True, mode='auto'),
         keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, verbose=0, mode='auto')
     ])
+
+file = open("mylog.txt","w")
+file.write("Learning is complete")
+file.close()
+
 # we re-load the best weights once training is finished
 model.load_weights(filepath)
 
