@@ -50,13 +50,14 @@ from keras.layers.noise import GaussianNoise
 from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D
 from keras.regularizers import *
 from keras.optimizers import adam
-import matplotlib.use('Agg')
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 import cPickle, random, sys, keras
 
 
-CONST_ARTIFACTS_FOLDER = "./artifacts/"
+#CONST_ARTIFACTS_FOLDER = "./artifacts/"
 
 # # Dataset setup
 
@@ -145,7 +146,7 @@ batch_size = 1024  # training batch size
 
 # perform training ...
 #   - call the main training loop in keras for our network+dataset
-filepath = CONST_ARTIFACTS_FOLDER + 'convmodrecnets_CNN2_0.5.wts.h5'
+filepath = 'convmodrecnets_CNN2_0.5.wts.h5'
 history = model.fit(X_train,
     Y_train,
     batch_size=batch_size,
@@ -178,7 +179,7 @@ plt.title('Training performance')
 plt.plot(history.epoch, history.history['loss'], label='train loss+error')
 plt.plot(history.epoch, history.history['val_loss'], label='val_error')
 plt.legend()
-plt.savefig(CONST_ARTIFACTS_FOLDER + 'loss_curves.png')
+#plt.savefig(CONST_ARTIFACTS_FOLDER + 'loss_curves.png')
 
 
 # In[10]:
@@ -194,7 +195,7 @@ def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Blues, label
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
     # TODO: differ the plots
-    plt.savefig(CONST_ARTIFACTS_FOLDER + title + '.png')
+    #plt.savefig(CONST_ARTIFACTS_FOLDER + title + '.png')
 
 
 # In[11]:
@@ -259,6 +260,6 @@ plt.plot(snrs, map(lambda x: acc[x], snrs))
 plt.xlabel("Signal to Noise Ratio")
 plt.ylabel("Classification Accuracy")
 plt.title("CNN2 Classification Accuracy on RadioML 2016.10 Alpha")
-plt.savefig(CONST_ARTIFACTS_FOLDER + 'accuracy_curve' + '.png')
+#plt.savefig(CONST_ARTIFACTS_FOLDER + 'accuracy_curve' + '.png')
 
 # In[ ]:
