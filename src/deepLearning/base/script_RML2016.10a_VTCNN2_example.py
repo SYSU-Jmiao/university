@@ -1,48 +1,8 @@
 
-# coding: utf-8
-
-# ## Modulation Recognition Example: RML2016.10a Dataset + VT-CNN2 Mod-Rec Network
-#
-# More information on this classification method can be found at
-# https://arxiv.org/abs/1602.04105
-#
-# More information on the RML2016.10a dataset can be found at
-# http://pubs.gnuradio.org/index.php/grcon/article/view/11
-#
-# Please cite derivative works
-#
-# ```
-# @article{convnetmodrec,
-#   title={Convolutional Radio Modulation Recognition Networks},
-#   author={O'Shea, Timothy J and Corgan, Johnathan and Clancy, T. Charles},
-#   journal={arXiv preprint arXiv:1602.04105},
-#   year={2016}
-# }
-# @article{rml_datasets,
-#   title={Radio Machine Learning Dataset Generation with GNU Radio},
-#   author={O'Shea, Timothy J and West, Nathan},
-#   journal={Proceedings of the 6th GNU Radio Conference},
-#   year={2016}
-# }
-# ```
-#
-# To run this example, you will need to download or generate the RML2016.10a dataset (https://radioml.com/datasets/)
-# You will also need Keras installed with either the Theano or Tensor Flow backend working.
-#
-# Have fun!
-
-# In[1]:
-
-# Import all the things we need ---
-#   by setting env variables before Keras import you can set up which backend and which GPU it uses
-#get_ipython().magic('matplotlib inline')
 import os,random
-#os.environ["KERAS_BACKEND"] = "theano"
 os.environ["KERAS_BACKEND"] = "tensorflow"
 os.environ["THEANO_FLAGS"]  = "device=gpu%d"%(1)
 import numpy as np
-#import theano as th
-#import theano.tensor as T
 from keras.utils import np_utils
 import keras.models as models
 from keras.layers.core import Reshape,Dense,Dropout,Activation,Flatten
@@ -57,12 +17,6 @@ import seaborn as sns
 import cPickle, random, sys, keras
 
 
-# # Dataset setup
-
-# In[2]:
-
-# Load the dataset ...
-#  You will need to seperately download or generate this file
 Xd = cPickle.load(open("RML2016.10a_dict.dat",'rb'))
 snrs,mods = map(lambda j: sorted(list(set(map(lambda x: x[j], Xd.keys())))), [1,0])
 X = []
@@ -73,8 +27,6 @@ for mod in mods:
         for i in range(Xd[(mod,snr)].shape[0]):  lbl.append((mod,snr))
 X = np.vstack(X)
 
-
-# In[3]:
 
 # Partition the data
 #  into training and test sets of the form we can train/test on
@@ -94,16 +46,9 @@ Y_train = to_onehot(map(lambda x: mods.index(lbl[x][0]), train_idx))
 Y_test = to_onehot(map(lambda x: mods.index(lbl[x][0]), test_idx))
 
 
-# In[4]:
-
 in_shp = list(X_train.shape[1:])
 print X_train.shape, in_shp
 classes = mods
-
-
-# # Build the NN Model
-
-# In[5]:
 
 
 # Build VT-CNN2 Neural Net model using Keras primitives --
@@ -139,10 +84,6 @@ batch_size = 500  # training batch size
 #batch_size = 1024  # training batch size
 
 
-# # Train the Model
-
-# In[7]:
-
 # perform training ...
 #   - call the main training loop in keras for our network+dataset
 filepath = 'convmodrecnets_CNN2_0.5.wts.h5'
@@ -168,14 +109,9 @@ model.load_weights(filepath)
 
 # # Evaluate and Plot Model Performance
 
-# In[8]:
-
 # Show simple version of performance
 score = model.evaluate(X_test, Y_test, show_accuracy=True, verbose=0, batch_size=batch_size)
 print score
-
-
-# In[9]:
 
 # Show loss curves
 plt.figure()
@@ -184,9 +120,6 @@ plt.plot(history.epoch, history.history['loss'], label='train loss+error')
 plt.plot(history.epoch, history.history['val_loss'], label='val_error')
 plt.legend()
 plt.savefig('loss_curves.png')
-
-
-# In[10]:
 
 def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Blues, labels=[]):
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
@@ -201,9 +134,6 @@ def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Blues, label
     # TODO: differ the plots
     plt.savefig(title + '.png')
 
-
-# In[11]:
-
 # Plot confusion matrix
 test_Y_hat = model.predict(X_test, batch_size=batch_size)
 conf = np.zeros([len(classes),len(classes)])
@@ -217,8 +147,6 @@ for i in range(0,len(classes)):
 plot_confusion_matrix(confnorm, labels=classes)
 
 
-
-# In[12]:
 
 # Plot confusion matrix
 acc = {}
@@ -248,16 +176,10 @@ for snr in snrs:
     acc[snr] = 1.0*cor/(cor+ncor)
 
 
-
-# In[13]:
-
 # Save results to a pickle file for plotting later
 print acc
 fd = open('results_cnn2_d0.5.dat','wb')
 cPickle.dump( ("CNN2", 0.5, acc) , fd )
-
-
-# In[14]:
 
 # Plot accuracy curve
 plt.plot(snrs, map(lambda x: acc[x], snrs))
@@ -265,5 +187,3 @@ plt.xlabel("Signal to Noise Ratio")
 plt.ylabel("Classification Accuracy")
 plt.title("CNN2 Classification Accuracy on RadioML 2016.10 Alpha")
 plt.savefig('accuracy_curve' + '.png')
-
-# In[ ]:
