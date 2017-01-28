@@ -57,8 +57,6 @@ import seaborn as sns
 import cPickle, random, sys, keras
 
 
-#CONST_ARTIFACTS_FOLDER = "./artifacts/"
-
 # # Dataset setup
 
 # In[2]:
@@ -185,7 +183,7 @@ plt.title('Training performance')
 plt.plot(history.epoch, history.history['loss'], label='train loss+error')
 plt.plot(history.epoch, history.history['val_loss'], label='val_error')
 plt.legend()
-#plt.savefig(CONST_ARTIFACTS_FOLDER + 'loss_curves.png')
+plt.savefig('loss_curves.png')
 
 
 # In[10]:
@@ -201,7 +199,7 @@ def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Blues, label
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
     # TODO: differ the plots
-    #plt.savefig(CONST_ARTIFACTS_FOLDER + title + '.png')
+    plt.savefig(title + '.png')
 
 
 # In[11]:
@@ -266,6 +264,6 @@ plt.plot(snrs, map(lambda x: acc[x], snrs))
 plt.xlabel("Signal to Noise Ratio")
 plt.ylabel("Classification Accuracy")
 plt.title("CNN2 Classification Accuracy on RadioML 2016.10 Alpha")
-#plt.savefig(CONST_ARTIFACTS_FOLDER + 'accuracy_curve' + '.png')
+plt.savefig('accuracy_curve' + '.png')
 
 # In[ ]:
