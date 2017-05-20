@@ -24,6 +24,8 @@ jupyter-core==4.3.0
 Keras==2.0.4
 MarkupSafe==1.0
 matplotlib==2.0.2
+missinglink-kernel==0.536
+missinglink-sdk==0.536
 mistune==0.7.4
 mock==2.0.0
 nbconvert==5.1.1
@@ -31,6 +33,7 @@ nbformat==4.3.0
 notebook==5.0.0
 numpy==1.12.1
 packaging==16.8
+pandas==0.20.1
 pandocfilters==1.4.1
 pathlib2==2.2.1
 pbr==3.0.1
@@ -46,8 +49,10 @@ pytz==2017.2
 PyYAML==3.12
 pyzmq==16.0.2
 qtconsole==4.3.0
+requests==2.14.2
 scandir==1.5
 scipy==0.19.0
+seaborn==0.7.1
 simplegeneric==0.8.1
 singledispatch==3.4.0.3
 six==1.10.0
