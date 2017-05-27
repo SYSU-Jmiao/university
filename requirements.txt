@@ -33,6 +33,7 @@ nbconvert==5.1.1
 nbformat==4.3.0
 notebook==5.0.0
 numpy==1.12.1
+olefile==0.44
 packaging==16.8
 pandas==0.20.1
 pandocfilters==1.4.1
@@ -40,6 +41,7 @@ pathlib2==2.2.1
 pbr==3.0.1
 pexpect==4.2.1
 pickleshare==0.7.4
+Pillow==4.1.1
 prompt-toolkit==1.0.14
 protobuf==3.3.0
 ptyprocess==0.5.1
