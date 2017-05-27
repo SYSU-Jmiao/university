@@ -1,0 +1,3 @@
+bottleneck_fc_model.h5
+bottleneck_features_train.npy
+bottleneck_features_validation.npy
