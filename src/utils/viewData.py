@@ -45,7 +45,7 @@ def getOverSampledSignal(sample,overSampleFactor):
 
 
 def cwtSignal(index,list):
-    test_value = list[0]
+    test_value = list[index]
     plotCWT(test_value[0])
     plotCWT(test_value[1])
     
@@ -62,8 +62,20 @@ def plotCWT(mySignal):
     plt.show()
 
 
+def periodGram(index,list):
+    test_value = list[index]
+    plotPeriodGram(test_value[0])
+    plotPeriodGram(test_value[1])
+
+def plotPeriodGram(x):
+    fs = 10e6
+    f, Pxx_den = signal.periodogram(getOverSampledSignal(x,8), fs)
+    plt.semilogy(f, Pxx_den)
+    plt.xlabel('frequency [Hz]')
+    plt.ylabel('PSD [V**2/Hz]')
+    plt.show()
+
 samplesList = getSamples(DB_LOCATION)
 
 cwtSignal(0,samplesList)
-cwtSignal(1,samplesList)
-cwtSignal(2,samplesList)
+periodGram(0,samplesList)
