@@ -31,4 +31,26 @@ Y_test = to_onehot(map(lambda x: mods.index(lbl[x][0]), test_idx))
 
 in_shp = list(X_train.shape[1:])
 print X_train.shape, in_shp
-classes = mods
+
+test_value = X_train[0]
+
+t = np.arange(0,128,1)
+s = test_value[0]
+u = test_value[1]
+
+plt.plot(t,s)
+
+plt.xlabel('sample')
+plt.ylabel('voltage (mV)')
+plt.grid(True)
+
+plt.figure(1)
+plt.subplot(211)
+plt.title('I channel')
+plt.plot(t,s)
+
+plt.subplot(212)
+plt.title('Q channel')
+plt.plot(t,u)
+
+plt.show()
