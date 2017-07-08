@@ -36,6 +36,13 @@ def getSamples(dbLocation):
     print X_train.shape, in_shp
     return X_train
 
+def getOverSampledSignal(sample,overSampleFactor):
+    t = np.arange(0,128,1)
+    f = interpolate.InterpolatedUnivariateSpline(t, sample)
+    tNew = np.arange(0.0,128.0,0.125)
+    sNew = f(tNew)
+    return sNew
+
 
 def cwtSignal(index,list):
     test_value = list[0]
@@ -44,13 +51,12 @@ def cwtSignal(index,list):
     
 
 def plotCWT(mySignal):
-    t = np.arange(0,128,1)
-    f = interpolate.InterpolatedUnivariateSpline(t, mySignal)
-    tNew = np.arange(0.0,128.0,0.125)
-    sNew = f(tNew)
-    widths = np.arange(1, 256)
+    sNew = getOverSampledSignal(mySignal,8)
+    print sNew.shape
+    width = 32
+    widths = np.arange(1, width)
     cwtmatr = signal.cwt(sNew, signal.ricker, widths)
-    plt.imshow(cwtmatr, extent=[-1, 1, 1, 256], cmap='PRGn', aspect='auto',
+    plt.imshow(cwtmatr, extent=[-1, 1, 1, width], cmap='PRGn', aspect='auto',
            vmax=abs(cwtmatr).max(), vmin=-abs(cwtmatr).max())
     print cwtmatr.shape       
     plt.show()
