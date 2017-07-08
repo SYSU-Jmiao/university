@@ -2,6 +2,8 @@ import os,random
 import numpy as np
 import matplotlib.pyplot as plt
 import cPickle, random, sys
+from scipy import interpolate
+from scipy import signal
 
 
 Xd = cPickle.load(open("RML2016.10a_dict.dat",'rb'))
@@ -36,21 +38,15 @@ test_value = X_train[0]
 
 t = np.arange(0,128,1)
 s = test_value[0]
-u = test_value[1]
 
-plt.plot(t,s)
+f = interpolate.InterpolatedUnivariateSpline(t, s)
 
-plt.xlabel('sample')
-plt.ylabel('voltage (mV)')
-plt.grid(True)
+tNew = np.arange(0.0,128.0,0.125)
+sNew = f(tNew)
 
-plt.figure(1)
-plt.subplot(211)
-plt.title('I channel')
-plt.plot(t,s)
 
-plt.subplot(212)
-plt.title('Q channel')
-plt.plot(t,u)
-
+widths = np.arange(1, 31)
+cwtmatr = signal.cwt(sNew, signal.ricker, widths)
+plt.imshow(cwtmatr, extent=[-1, 1, 1, 31], cmap='PRGn', aspect='auto',
+           vmax=abs(cwtmatr).max(), vmin=-abs(cwtmatr).max())
 plt.show()
