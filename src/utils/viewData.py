@@ -75,7 +75,23 @@ def plotPeriodGram(x):
     plt.ylabel('PSD [V**2/Hz]')
     plt.show()
 
+
+def spectogram(index,list):
+    test_value = list[index]
+    plotspectogram(test_value[0])
+    plotspectogram(test_value[1])
+
+def plotspectogram(x):
+    fs = 10e6
+    f, t, Sxx = signal.spectrogram(getOverSampledSignal(x,8), fs)
+    plt.pcolormesh(t, f, Sxx)
+    plt.ylabel('Frequency [Hz]')
+    plt.xlabel('Time [sec]')
+    plt.show()
+
+
 samplesList = getSamples(DB_LOCATION)
 
 cwtSignal(0,samplesList)
 periodGram(0,samplesList)
+spectogram(0,samplesList)
