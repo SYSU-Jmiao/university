@@ -32,7 +32,7 @@ def getSamples(dbLocation):
     Y_test = to_onehot(map(lambda x: mods.index(lbl[x][0]), test_idx))
     in_shp = list(X_train.shape[1:])
     print X_train.shape, in_shp
-    return X_train
+    return X_train,Y_train,mods
 
 def getOverSampledSignal(sample,overSampleFactor):
     sampleSize = sample.shape[0]
@@ -41,11 +41,11 @@ def getOverSampledSignal(sample,overSampleFactor):
     f = interpolate.InterpolatedUnivariateSpline(t, sample)
     tNew = np.arange(0.0,sampleSize, 1.0/overSampleFactor)
     sNew = f(tNew)
-    plt.plot(t,sample,'b')
-    plt.plot(tNew,sNew,'g')
-    plt.xlabel('sample')
-    plt.ylabel('oversampled:' + str(overSampleFactor))
-    plt.show()
+    # plt.plot(t,sample,'b')
+    # plt.plot(tNew,sNew,'g')
+    # plt.xlabel('sample')
+    # plt.ylabel('oversampled:' + str(overSampleFactor))
+    # plt.show()
 
     return sNew
 
@@ -95,10 +95,24 @@ def plotspectogram(x):
     plt.xlabel('Time [sec]')
     plt.show()
 
+def crossSpectrumDensity(index,list):
+    test_value = list[index]
+    plotCrossSpectogram(test_value[0],test_value[1])
 
-samplesList = getSamples(DB_LOCATION)
+def plotCrossSpectogram(x,y):
+    fs = 10e6
+    f, Pxy = signal.csd(getOverSampledSignal(x,8),getOverSampledSignal(y,8), fs, nperseg=1024)
+    plt.semilogy(f, np.abs(Pxy))
+    plt.xlabel('frequency [Hz]')
+    plt.ylabel('CSD [V**2/Hz]')
+    plt.show()
+
+
+samplesList,labels,mods = getSamples(DB_LOCATION)
 
 for x in range(0, 3):
-    cwtSignal(x,samplesList)
-    periodGram(x,samplesList)
-    spectogram(x,samplesList)
+    # cwtSignal(x,samplesList)
+    # periodGram(x,samplesList)
+    # spectogram(x,samplesList)
+    print mods[np.where(labels[x] == 1.0)[0][0]]    
+    crossSpectrumDensity(x,samplesList)
