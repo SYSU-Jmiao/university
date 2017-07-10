@@ -17,7 +17,6 @@ def getSamples(dbLocation):
             X.append(Xd[(mod,snr)])
             for i in range(Xd[(mod,snr)].shape[0]):  lbl.append((mod,snr))
     X = np.vstack(X)
-
     np.random.seed(2016)
     n_examples = X.shape[0]
     n_train = n_examples * 0.5
@@ -31,16 +30,23 @@ def getSamples(dbLocation):
         return yy1
     Y_train = to_onehot(map(lambda x: mods.index(lbl[x][0]), train_idx))
     Y_test = to_onehot(map(lambda x: mods.index(lbl[x][0]), test_idx))
-
     in_shp = list(X_train.shape[1:])
     print X_train.shape, in_shp
     return X_train
 
 def getOverSampledSignal(sample,overSampleFactor):
-    t = np.arange(0,128,1)
+    sampleSize = sample.shape[0]
+    print 'Original size = ',sampleSize,', New size = ',sampleSize*overSampleFactor
+    t = np.arange(0,sampleSize,1)
     f = interpolate.InterpolatedUnivariateSpline(t, sample)
-    tNew = np.arange(0.0,128.0,0.125)
+    tNew = np.arange(0.0,sampleSize, 1.0/overSampleFactor)
     sNew = f(tNew)
+    plt.plot(t,sample,'b')
+    plt.plot(tNew,sNew,'g')
+    plt.xlabel('sample')
+    plt.ylabel('oversampled:' + str(overSampleFactor))
+    plt.show()
+
     return sNew
 
 
@@ -92,6 +98,7 @@ def plotspectogram(x):
 
 samplesList = getSamples(DB_LOCATION)
 
-cwtSignal(0,samplesList)
-periodGram(0,samplesList)
-spectogram(0,samplesList)
+for x in range(0, 3):
+    cwtSignal(x,samplesList)
+    periodGram(x,samplesList)
+    spectogram(x,samplesList)
