@@ -86,15 +86,14 @@ def plotspectogram(x):
     plt.xlabel('Time [sec]')
     plt.show()
 
-def crossSpectrumDensity(sample):
-    plotCrossSpectogram(sample[0], sample[1])
-
-def plotCrossSpectogram(x, y):
+def crossSpectrumDensity(sample, label):
     fs = 10e6
+    x, y = sample[0], sample[1]
     f, Pxy = signal.csd(getOverSampledSignal(x, 8),getOverSampledSignal(y, 8), fs, nperseg=1024)
     plt.semilogy(f, np.abs(Pxy))
     plt.xlabel('frequency [Hz]')
     plt.ylabel('CSD [V**2/Hz]')
+    plt.title(label)
     plt.show()
 
 def getSignalWithLabelGenerator(initDb,dbName):
@@ -108,7 +107,6 @@ def getSignalWithLabelGenerator(initDb,dbName):
 
 generator = getSignalWithLabelGenerator(initDataBase, DB_LOCATION)
 
-for x in range(0, 3):
+for x in range(0, 20):
     sample, label = generator(x)
-    print label
-    crossSpectrumDensity(sample)
+    crossSpectrumDensity(sample, label)
