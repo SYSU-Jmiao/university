@@ -1,13 +1,11 @@
-import os,random
+import os, random, cPickle, sys
 import numpy as np
 import matplotlib.pyplot as plt
-import cPickle, random, sys
-from scipy import interpolate
-from scipy import signal
+from scipy import interpolate, signal
 
 DB_LOCATION = "RML2016.10a_dict.dat"
 
-def getSamples(dbLocation):
+def initDataBase(dbLocation):
     Xd = cPickle.load(open(dbLocation,'rb'))
     snrs,mods = map(lambda j: sorted(list(set(map(lambda x: x[j], Xd.keys())))), [1,0])
     X = []  
@@ -34,19 +32,13 @@ def getSamples(dbLocation):
     print X_train.shape, in_shp
     return X_train,Y_train,mods
 
-def getOverSampledSignal(sample,overSampleFactor):
+def getOverSampledSignal(sample, overSampleFactor):
     sampleSize = sample.shape[0]
-    print 'Original size = ',sampleSize,', New size = ',sampleSize*overSampleFactor
-    t = np.arange(0,sampleSize,1)
+    print 'Original size = ', sampleSize,', New size = ', sampleSize*overSampleFactor
+    t = np.arange(0, sampleSize, 1)
     f = interpolate.InterpolatedUnivariateSpline(t, sample)
-    tNew = np.arange(0.0,sampleSize, 1.0/overSampleFactor)
+    tNew = np.arange(0.0, sampleSize, 1.0/overSampleFactor)
     sNew = f(tNew)
-    # plt.plot(t,sample,'b')
-    # plt.plot(tNew,sNew,'g')
-    # plt.xlabel('sample')
-    # plt.ylabel('oversampled:' + str(overSampleFactor))
-    # plt.show()
-
     return sNew
 
 
@@ -57,16 +49,15 @@ def cwtSignal(index,list):
     
 
 def plotCWT(mySignal):
-    sNew = getOverSampledSignal(mySignal,8)
+    sNew = getOverSampledSignal(mySignal, 8)
     print sNew.shape
     width = 32
     widths = np.arange(1, width)
     cwtmatr = signal.cwt(sNew, signal.ricker, widths)
-    plt.imshow(cwtmatr, extent=[-1, 1, 1, width], cmap='PRGn', aspect='auto',
-           vmax=abs(cwtmatr).max(), vmin=-abs(cwtmatr).max())
-    print cwtmatr.shape       
+    plt.imshow(cwtmatr, extent=[-1, 1, 1, width],
+               cmap='PRGn', aspect='auto', vmax=abs(cwtmatr).max(), vmin=-abs(cwtmatr).max())
+    print cwtmatr.shape
     plt.show()
-
 
 def periodGram(index,list):
     test_value = list[index]
@@ -89,35 +80,35 @@ def spectogram(index,list):
 
 def plotspectogram(x):
     fs = 10e6
-    f, t, Sxx = signal.spectrogram(getOverSampledSignal(x,8), fs)
+    f, t, Sxx = signal.spectrogram(getOverSampledSignal(x, 8), fs)
     plt.pcolormesh(t, f, Sxx)
     plt.ylabel('Frequency [Hz]')
     plt.xlabel('Time [sec]')
     plt.show()
 
 def crossSpectrumDensity(sample):
-    plotCrossSpectogram(sample[0],sample[1])
+    plotCrossSpectogram(sample[0], sample[1])
 
-def plotCrossSpectogram(x,y):
+def plotCrossSpectogram(x, y):
     fs = 10e6
-    f, Pxy = signal.csd(getOverSampledSignal(x,8),getOverSampledSignal(y,8), fs, nperseg=1024)
+    f, Pxy = signal.csd(getOverSampledSignal(x, 8),getOverSampledSignal(y, 8), fs, nperseg=1024)
     plt.semilogy(f, np.abs(Pxy))
     plt.xlabel('frequency [Hz]')
     plt.ylabel('CSD [V**2/Hz]')
     plt.show()
 
-def getSignalWithLabelGenerator(signals,labels,mods):
+def getSignalWithLabelGenerator(initDb,dbName):
+    signals, labels, mods = initDb(dbName)
     def getSignalWithLabel(x):
         signal = signals[x]
         label = mods[np.where(labels[x] == 1.0)[0][0]]
-        return  signal,label
+        return  signal, label
     return getSignalWithLabel
 
 
-samples,labels,mods = getSamples(DB_LOCATION)
-generator = getSignalWithLabelGenerator(samples,labels,mods)
+generator = getSignalWithLabelGenerator(initDataBase, DB_LOCATION)
 
-for x in range(0, 3):    
+for x in range(0, 3):
     sample, label = generator(x)
     print label
     crossSpectrumDensity(sample)
