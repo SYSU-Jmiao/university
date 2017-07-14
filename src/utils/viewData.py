@@ -95,9 +95,8 @@ def plotspectogram(x):
     plt.xlabel('Time [sec]')
     plt.show()
 
-def crossSpectrumDensity(index,list):
-    test_value = list[index]
-    plotCrossSpectogram(test_value[0],test_value[1])
+def crossSpectrumDensity(sample):
+    plotCrossSpectogram(sample[0],sample[1])
 
 def plotCrossSpectogram(x,y):
     fs = 10e6
@@ -107,12 +106,18 @@ def plotCrossSpectogram(x,y):
     plt.ylabel('CSD [V**2/Hz]')
     plt.show()
 
+def getSignalWithLabelGenerator(signals,labels,mods):
+    def getSignalWithLabel(x):
+        signal = signals[x]
+        label = mods[np.where(labels[x] == 1.0)[0][0]]
+        return  signal,label
+    return getSignalWithLabel
 
-samplesList,labels,mods = getSamples(DB_LOCATION)
 
-for x in range(0, 3):
-    # cwtSignal(x,samplesList)
-    # periodGram(x,samplesList)
-    # spectogram(x,samplesList)
-    print mods[np.where(labels[x] == 1.0)[0][0]]    
-    crossSpectrumDensity(x,samplesList)
+samples,labels,mods = getSamples(DB_LOCATION)
+generator = getSignalWithLabelGenerator(samples,labels,mods)
+
+for x in range(0, 3):    
+    sample, label = generator(x)
+    print label
+    crossSpectrumDensity(sample)
