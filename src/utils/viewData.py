@@ -41,36 +41,22 @@ def getOverSampledSignal(sample, overSampleFactor):
     sNew = f(tNew)
     return sNew
 
-
-def cwtSignal(index,list):
-    test_value = list[index]
-    plotCWT(test_value[0])
-    plotCWT(test_value[1])
-    
-
-def plotCWT(mySignal):
-    sNew = getOverSampledSignal(mySignal, 8)
-    print sNew.shape
+def cwt(x):
+    sNew = getOverSampledSignal(x, 8)
     width = 32
     widths = np.arange(1, width)
     cwtmatr = signal.cwt(sNew, signal.ricker, widths)
     plt.imshow(cwtmatr, extent=[-1, 1, 1, width],
                cmap='PRGn', aspect='auto', vmax=abs(cwtmatr).max(), vmin=-abs(cwtmatr).max())
-    print cwtmatr.shape
-    plt.show()
+    plt.plot()
 
-def periodGram(index,list):
-    test_value = list[index]
-    plotPeriodGram(test_value[0])
-    plotPeriodGram(test_value[1])
-
-def plotPeriodGram(x):
+def periodGram(x):
     fs = 10e6
     f, Pxx_den = signal.periodogram(getOverSampledSignal(x,8), fs)
     plt.semilogy(f, Pxx_den)
     plt.xlabel('frequency [Hz]')
     plt.ylabel('PSD [V**2/Hz]')
-    plt.show()
+    plt.plot()
 
 def spectogram(x):
     fs = 10e6
@@ -119,6 +105,32 @@ for x in range(0, numberOfSamples-1, 2):
     plt.subplot(4, 2, x+2)
     plt.tight_layout()
     spectogram(sample[1])
+    plt.title( " Q " + label)
+
+plt.show();
+
+numberOfSamples = 6
+for x in range(0, numberOfSamples-1, 2):
+    sample, label = generator(x)
+    plt.subplot(4, 2, x+1)
+    plt.tight_layout()
+    periodGram(sample[0])
+    plt.title( " I " + label)
+    plt.subplot(4, 2, x+2)
+    plt.tight_layout()
+    periodGram(sample[1])
+    plt.title( " Q " + label)
+
+numberOfSamples = 6
+for x in range(0, numberOfSamples-1, 2):
+    sample, label = generator(x)
+    plt.subplot(4, 2, x+1)
+    plt.tight_layout()
+    cwt(sample[0])
+    plt.title( " I " + label)
+    plt.subplot(4, 2, x+2)
+    plt.tight_layout()
+    cwt(sample[1])
     plt.title( " Q " + label)
 
 plt.show();
