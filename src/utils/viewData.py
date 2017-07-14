@@ -72,19 +72,13 @@ def plotPeriodGram(x):
     plt.ylabel('PSD [V**2/Hz]')
     plt.show()
 
-
-def spectogram(index,list):
-    test_value = list[index]
-    plotspectogram(test_value[0])
-    plotspectogram(test_value[1])
-
-def plotspectogram(x):
+def spectogram(x):
     fs = 10e6
     f, t, Sxx = signal.spectrogram(getOverSampledSignal(x, 8), fs)
     plt.pcolormesh(t, f, Sxx)
     plt.ylabel('Frequency [Hz]')
     plt.xlabel('Time [sec]')
-    plt.show()
+    plt.plot()
 
 def crossSpectrumDensity(sample):
     fs = 10e6
@@ -95,7 +89,7 @@ def crossSpectrumDensity(sample):
     plt.ylabel('CSD [V**2/Hz]')
     plt.plot()
 
-def getSignalWithLabelGenerator(initDb,dbName):
+def getSignalWithLabelGenerator(initDb, dbName):
     signals, labels, mods = initDb(dbName)
     def getSignalWithLabel(x):
         signal = signals[x]
@@ -112,4 +106,19 @@ for x in range(0, numberOfSamples):
     plt.tight_layout()
     plt.title(label)
     crossSpectrumDensity(sample)
+
+plt.show();
+
+numberOfSamples = 6
+for x in range(0, numberOfSamples-1, 2):
+    sample, label = generator(x)
+    plt.subplot(4, 2, x+1)
+    plt.tight_layout()
+    spectogram(sample[0])
+    plt.title( " I " + label)
+    plt.subplot(4, 2, x+2)
+    plt.tight_layout()
+    spectogram(sample[1])
+    plt.title( " Q " + label)
+
 plt.show();
