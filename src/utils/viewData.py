@@ -34,7 +34,7 @@ def initDataBase(dbLocation):
 
 def getOverSampledSignal(sample, overSampleFactor):
     sampleSize = sample.shape[0]
-    print 'Original size = ', sampleSize,', New size = ', sampleSize*overSampleFactor
+    # print 'Original size = ', sampleSize,', New size = ', sampleSize*overSampleFactor
     t = np.arange(0, sampleSize, 1)
     f = interpolate.InterpolatedUnivariateSpline(t, sample)
     tNew = np.arange(0.0, sampleSize, 1.0/overSampleFactor)
@@ -86,15 +86,14 @@ def plotspectogram(x):
     plt.xlabel('Time [sec]')
     plt.show()
 
-def crossSpectrumDensity(sample, label):
+def crossSpectrumDensity(sample):
     fs = 10e6
     x, y = sample[0], sample[1]
     f, Pxy = signal.csd(getOverSampledSignal(x, 8),getOverSampledSignal(y, 8), fs, nperseg=1024)
     plt.semilogy(f, np.abs(Pxy))
     plt.xlabel('frequency [Hz]')
     plt.ylabel('CSD [V**2/Hz]')
-    plt.title(label)
-    plt.show()
+    plt.plot()
 
 def getSignalWithLabelGenerator(initDb,dbName):
     signals, labels, mods = initDb(dbName)
@@ -106,7 +105,11 @@ def getSignalWithLabelGenerator(initDb,dbName):
 
 
 generator = getSignalWithLabelGenerator(initDataBase, DB_LOCATION)
-
-for x in range(0, 20):
+numberOfSamples = 9
+for x in range(0, numberOfSamples):
     sample, label = generator(x)
-    crossSpectrumDensity(sample, label)
+    plt.subplot(3, 3, x+1)
+    plt.tight_layout()
+    plt.title(label)
+    crossSpectrumDensity(sample)
+plt.show();
