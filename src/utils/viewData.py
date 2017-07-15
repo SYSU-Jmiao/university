@@ -6,7 +6,6 @@ from dbManager import initDb
 
 def getOverSampledSignal(sample, overSampleFactor):
     sampleSize = sample.shape[0]
-    # print 'Original size = ', sampleSize,', New size = ', sampleSize*overSampleFactor
     t = np.arange(0, sampleSize, 1)
     f = interpolate.InterpolatedUnivariateSpline(t, sample)
     tNew = np.arange(0.0, sampleSize, 1.0/overSampleFactor)
@@ -57,10 +56,10 @@ def getSignalWithLabelGenerator(initDb):
 
 
 generator = getSignalWithLabelGenerator(initDb)
-numberOfSamples = 9
+numberOfSamples = 6
 for x in range(0, numberOfSamples):
     sample, label = generator(x)
-    plt.subplot(3, 3, x+1)
+    plt.subplot(3, 2, x+1)
     plt.tight_layout()
     plt.title(label)
     crossSpectrumDensity(sample)
@@ -70,11 +69,11 @@ plt.show();
 numberOfSamples = 6
 for x in range(0, numberOfSamples-1, 2):
     sample, label = generator(x)
-    plt.subplot(4, 2, x+1)
+    plt.subplot(3, 2, x+1)
     plt.tight_layout()
     spectogram(sample[0])
     plt.title( " I " + label)
-    plt.subplot(4, 2, x+2)
+    plt.subplot(3, 2, x+2)
     plt.tight_layout()
     spectogram(sample[1])
     plt.title( " Q " + label)
@@ -84,11 +83,11 @@ plt.show();
 numberOfSamples = 6
 for x in range(0, numberOfSamples-1, 2):
     sample, label = generator(x)
-    plt.subplot(4, 2, x+1)
+    plt.subplot(3, 2, x+1)
     plt.tight_layout()
     periodGram(sample[0])
     plt.title( " I " + label)
-    plt.subplot(4, 2, x+2)
+    plt.subplot(3, 2, x+2)
     plt.tight_layout()
     periodGram(sample[1])
     plt.title( " Q " + label)
@@ -98,11 +97,11 @@ plt.show();
 numberOfSamples = 6
 for x in range(0, numberOfSamples-1, 2):
     sample, label = generator(x)
-    plt.subplot(4, 2, x+1)
+    plt.subplot(3, 2, x+1)
     plt.tight_layout()
     cwt(sample[0])
     plt.title( " I " + label)
-    plt.subplot(4, 2, x+2)
+    plt.subplot(3, 2, x+2)
     plt.tight_layout()
     cwt(sample[1])
     plt.title( " Q " + label)
