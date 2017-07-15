@@ -2,35 +2,7 @@ import os, random, cPickle, sys
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import interpolate, signal
-
-DB_LOCATION = "RML2016.10a_dict.dat"
-
-def initDataBase(dbLocation):
-    Xd = cPickle.load(open(dbLocation,'rb'))
-    snrs,mods = map(lambda j: sorted(list(set(map(lambda x: x[j], Xd.keys())))), [1,0])
-    X = []  
-    lbl = []
-    for mod in mods:
-        for snr in snrs:
-            X.append(Xd[(mod,snr)])
-            for i in range(Xd[(mod,snr)].shape[0]):  lbl.append((mod,snr))
-    X = np.vstack(X)
-    np.random.seed(2016)
-    n_examples = X.shape[0]
-    n_train = n_examples * 0.5
-    train_idx = np.random.choice(range(0,int(n_examples)), size=int(n_train), replace=False)
-    test_idx = list(set(range(0,n_examples))-set(train_idx))
-    X_train = X[train_idx]
-    X_test =  X[test_idx]
-    def to_onehot(yy):
-        yy1 = np.zeros([len(yy), max(yy)+1])
-        yy1[np.arange(len(yy)),yy] = 1
-        return yy1
-    Y_train = to_onehot(map(lambda x: mods.index(lbl[x][0]), train_idx))
-    Y_test = to_onehot(map(lambda x: mods.index(lbl[x][0]), test_idx))
-    in_shp = list(X_train.shape[1:])
-    print X_train.shape, in_shp
-    return X_train,Y_train,mods
+from dbManager import initDb
 
 def getOverSampledSignal(sample, overSampleFactor):
     sampleSize = sample.shape[0]
@@ -75,8 +47,8 @@ def crossSpectrumDensity(sample):
     plt.ylabel('CSD [V**2/Hz]')
     plt.plot()
 
-def getSignalWithLabelGenerator(initDb, dbName):
-    signals, labels, mods = initDb(dbName)
+def getSignalWithLabelGenerator(initDb):
+    signals, labels, mods = initDb()
     def getSignalWithLabel(x):
         signal = signals[x]
         label = mods[np.where(labels[x] == 1.0)[0][0]]
@@ -84,7 +56,7 @@ def getSignalWithLabelGenerator(initDb, dbName):
     return getSignalWithLabel
 
 
-generator = getSignalWithLabelGenerator(initDataBase, DB_LOCATION)
+generator = getSignalWithLabelGenerator(initDb)
 numberOfSamples = 9
 for x in range(0, numberOfSamples):
     sample, label = generator(x)
