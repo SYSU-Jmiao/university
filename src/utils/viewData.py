@@ -121,6 +121,8 @@ for x in range(0, numberOfSamples-1, 2):
     periodGram(sample[1])
     plt.title( " Q " + label)
 
+plt.show();
+
 numberOfSamples = 6
 for x in range(0, numberOfSamples-1, 2):
     sample, label = generator(x)
