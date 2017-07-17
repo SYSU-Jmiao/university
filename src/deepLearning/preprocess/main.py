@@ -60,34 +60,47 @@ classes = mods
 
 
 
-# Build VT-CNN2 Neural Net model using Keras primitives -- 
-#  - Reshape [N,2,128] to [N,1,2,128] on input
-#  - Pass through 2 2DConv/ReLu layers
-#  - Pass through 2 Dense layers (ReLu and Softmax)
-#  - Perform categorical cross entropy optimization
+######
+from keras import applications
+model = applications.VGG16(include_top=False, weights='imagenet')
+
 
 dr = 0.5 # dropout rate (%)
+# model = models.Sequential()
+# model.add(Reshape(in_shp+[1], input_shape=in_shp+[1]))
+# model.add(ZeroPadding2D((0,2)))
+# model.add(Conv2D(256,(1,3),kernel_initializer="glorot_uniform", name="conv1", activation="relu", padding="valid"))
+# model.add(Dropout(dr))
+# model.add(ZeroPadding2D((0, 2)))
+# model.add(Conv2D(80,(2,3),padding="valid", activation="relu", name="conv2", kernel_initializer='glorot_uniform'))
+# model.add(Dropout(dr))
+# model.add(Flatten())
+# model.add(Dense(256, kernel_initializer="he_normal", activation="relu", name="dense1"))
+# model.add(Dropout(dr))
+# model.add(Dense(11, kernel_initializer="he_normal", name="dense2"))
+# model.add(Activation('softmax'))
+# model.add(Reshape([len(classes)]))
+# model.compile(loss='categorical_crossentropy', optimizer='adam')
+# model.summary()
+
+
 model = models.Sequential()
-model.add(Reshape(in_shp+[1], input_shape=in_shp+[1]))
-model.add(ZeroPadding2D((0,2)))
-model.add(Conv2D(256,(1,3),kernel_initializer="glorot_uniform", name="conv1", activation="relu", padding="valid"))
-model.add(Dropout(dr))
-model.add(ZeroPadding2D((0, 2)))
-model.add(Conv2D(80,(2,3),padding="valid", activation="relu", name="conv2", kernel_initializer='glorot_uniform'))
-model.add(Dropout(dr))
-model.add(Flatten())
+
+model.add(Flatten(input_shape=in_shp +[1]))
 model.add(Dense(256, kernel_initializer="he_normal", activation="relu", name="dense1"))
 model.add(Dropout(dr))
 model.add(Dense(11, kernel_initializer="he_normal", name="dense2"))
 model.add(Activation('softmax'))
-model.add(Reshape([len(classes)]))
+model.add(Reshape([len(mods)]))
 model.compile(loss='categorical_crossentropy', optimizer='adam')
 model.summary()
 
 
 # Set up some params 
-nb_epoch = 100     # number of epochs to train on
-batch_size = 200  # training batch size
+nb_epoch = 50     # number of epochs to train on
+batch_size = 16  # training batch size
+
+
 
 
 # Generate
