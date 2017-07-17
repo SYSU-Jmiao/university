@@ -43,8 +43,8 @@ n_examples = X.shape[0]
 n_train = n_examples * 0.5
 train_idx = np.random.choice(range(0,int(n_examples)), size=int(n_train), replace=False)
 test_idx = list(set(range(0,n_examples))-set(train_idx))
-X_train = X[train_idx]
-X_test =  X[test_idx]
+X_train = np.expand_dims(X[train_idx], 3)
+X_test =  np.expand_dims(X[test_idx], 3)
 def to_onehot(yy):
     yy1 = np.zeros([len(yy), max(yy)+1])
     yy1[np.arange(len(yy)),yy] = 1
@@ -86,7 +86,7 @@ dr = 0.5 # dropout rate (%)
 
 model = models.Sequential()
 
-model.add(Flatten(input_shape=in_shp +[1]))
+model.add(Flatten(input_shape=in_shp))
 model.add(Dense(256, kernel_initializer="he_normal", activation="relu", name="dense1"))
 model.add(Dropout(dr))
 model.add(Dense(11, kernel_initializer="he_normal", name="dense2"))
@@ -109,10 +109,10 @@ def preprocessor(x):
     return x
 
 train_datagen = ImageDataGenerator(preprocessing_function=preprocessor)
-train_generator = train_datagen.flow(np.expand_dims(X_train, 3), Y_train, batch_size)
+train_generator = train_datagen.flow(X_train, Y_train, batch_size)
 
 validate_datagen = ImageDataGenerator(preprocessing_function=preprocessor)
-validate_generator = train_datagen.flow(np.expand_dims(X_test, 3), Y_test, batch_size)
+validate_generator = train_datagen.flow(X_test, Y_test, batch_size)
 
 # perform training ...
 missinglink_callback = missinglink.KerasCallback(owner_id="73b7dbec-273d-c6b7-776d-55812449a4e4", project_token="WxqnIeHhwiLIFejy")
