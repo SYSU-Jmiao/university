@@ -9,6 +9,7 @@ import keras.models as models
 from keras.layers.core import Reshape,Dense,Dropout,Activation,Flatten
 from keras.layers.noise import GaussianNoise
 from keras.layers.convolutional import Conv2D, MaxPooling2D, ZeroPadding2D
+from keras.preprocessing.image import ImageDataGenerator
 from keras.regularizers import *
 from keras.optimizers import adam
 import matplotlib.pyplot as plt
@@ -89,18 +90,22 @@ nb_epoch = 100     # number of epochs to train on
 batch_size = 200  # training batch size
 
 
+# Generate
+
+train_datagen = ImageDataGenerator(rotation_range=20)
+train_generator = train_datagen.flow(np.zeros((X_train.shape[0],50,50,3)), Y_train, batch_size)
+
 
 # perform training ...
 missinglink_callback = missinglink.KerasCallback(owner_id="73b7dbec-273d-c6b7-776d-55812449a4e4", project_token="WxqnIeHhwiLIFejy")
 missinglink_callback.set_properties(display_name='Base experiment', description='Initial base mode for experiment')
 #   - call the main training loop in keras for our network+dataset
 filepath = 'convmodrecnets_CNN2_0.5.wts.h5'
-history = model.fit(X_train,
-    Y_train,
-    batch_size=batch_size,
-    nb_epoch=nb_epoch,
-    verbose=2,
-    validation_data=(X_test, Y_test),
+history = model.fit_generator(
+    train_generator,
+    steps_per_epoch=X_train.shape[0] / batch_size,
+    epochs=nb_epoch,
+    # validation_data=(X_test, Y_test),
     callbacks = [
         keras.callbacks.ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=True, mode='auto'),
         keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, verbose=0, mode='auto'),
