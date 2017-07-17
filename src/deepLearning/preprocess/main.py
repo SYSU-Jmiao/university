@@ -98,6 +98,8 @@ def preprocessor(x):
 train_datagen = ImageDataGenerator(preprocessing_function=preprocessor)
 train_generator = train_datagen.flow(np.zeros((X_train.shape[0],50,50,3)), Y_train, batch_size)
 
+validate_datagen = ImageDataGenerator(preprocessing_function=preprocessor)
+validate_generator = train_datagen.flow(np.zeros((X_test.shape[0],50,50,3)), Y_test, batch_size)
 
 # perform training ...
 missinglink_callback = missinglink.KerasCallback(owner_id="73b7dbec-273d-c6b7-776d-55812449a4e4", project_token="WxqnIeHhwiLIFejy")
@@ -105,10 +107,11 @@ missinglink_callback.set_properties(display_name='Base experiment', description=
 #   - call the main training loop in keras for our network+dataset
 filepath = 'convmodrecnets_CNN2_0.5.wts.h5'
 history = model.fit_generator(
-    train_generator,
-    steps_per_epoch=X_train.shape[0] / batch_size,
+    train_generator,    
+    steps_per_epoch=X_train.shape[0]/batch_size,
+    validation_data=validate_generator,
+    validation_steps=X_test.shape[0]/batch_size,
     epochs=nb_epoch,
-    # validation_data=(X_test, Y_test),
     callbacks = [
         keras.callbacks.ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=True, mode='auto'),
         keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, verbose=0, mode='auto'),
