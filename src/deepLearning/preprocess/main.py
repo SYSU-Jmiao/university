@@ -68,7 +68,7 @@ classes = mods
 
 dr = 0.5 # dropout rate (%)
 model = models.Sequential()
-model.add(Reshape(in_shp+[1], input_shape=in_shp))
+model.add(Reshape(in_shp+[1], input_shape=in_shp+[1]))
 model.add(ZeroPadding2D((0,2)))
 model.add(Conv2D(256,(1,3),kernel_initializer="glorot_uniform", name="conv1", activation="relu", padding="valid"))
 model.add(Dropout(dr))
