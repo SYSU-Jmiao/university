@@ -92,7 +92,10 @@ batch_size = 200  # training batch size
 
 # Generate
 
-train_datagen = ImageDataGenerator(rotation_range=20)
+def preprocessor(x):
+    return x
+
+train_datagen = ImageDataGenerator(preprocessing_function=preprocessor)
 train_generator = train_datagen.flow(np.zeros((X_train.shape[0],50,50,3)), Y_train, batch_size)
 
 
