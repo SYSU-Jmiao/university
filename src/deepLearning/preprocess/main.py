@@ -96,10 +96,10 @@ def preprocessor(x):
     return x
 
 train_datagen = ImageDataGenerator(preprocessing_function=preprocessor)
-train_generator = train_datagen.flow(np.zeros((X_train.shape[0],50,50,3)), Y_train, batch_size)
+train_generator = train_datagen.flow(np.expand_dims(X_train, 3), Y_train, batch_size)
 
 validate_datagen = ImageDataGenerator(preprocessing_function=preprocessor)
-validate_generator = train_datagen.flow(np.zeros((X_test.shape[0],50,50,3)), Y_test, batch_size)
+validate_generator = train_datagen.flow(np.expand_dims(X_test, 3), Y_test, batch_size)
 
 # perform training ...
 missinglink_callback = missinglink.KerasCallback(owner_id="73b7dbec-273d-c6b7-776d-55812449a4e4", project_token="WxqnIeHhwiLIFejy")
