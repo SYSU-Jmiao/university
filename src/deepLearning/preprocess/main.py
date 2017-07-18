@@ -109,7 +109,7 @@ def preprocessor(x):
     return x
 
 train_datagen = ImageDataGenerator(preprocessing_function=preprocessor)
-train_generator = train_datagen.flow(X_train, Y_train, batch_size)
+train_generator = train_datagen.flow(X_train, Y_train, batch_size,save_to_dir="generated")
 
 validate_datagen = ImageDataGenerator(preprocessing_function=preprocessor)
 validate_generator = train_datagen.flow(X_test, Y_test, batch_size)
