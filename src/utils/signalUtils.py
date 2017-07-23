@@ -51,3 +51,14 @@ def cwt(x):
 	plt.imshow(cwtmatr, extent=[-1, 1, 1, width],
 				cmap='PRGn', aspect='auto', vmax=abs(cwtmatr).max(), vmin=-abs(cwtmatr).max())
 	plt.plot()
+
+
+def stft(x):
+    amp = 2 * np.sqrt(2)
+    fs = 10e6
+    f, t, Zxx = signal.stft(getOverSampledSignal(x, 8), fs)
+    plt.pcolormesh(t, f, np.abs(Zxx))
+    plt.title('STFT Magnitude')
+    plt.ylabel('Frequency [Hz]')
+    plt.xlabel('Time [sec]')
+    plt.plot()

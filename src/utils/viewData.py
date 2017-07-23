@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 
 from dbManager import initDb
 from signalUtils import getSignalWithLabelGenerator
-from signalUtils import crossSpectrumDensity, spectogram, periodGram, cwt
+from signalUtils import crossSpectrumDensity, spectogram, periodGram, cwt, stft
 
 NUMBER_OF_SAMPLES_PER_METHOD = 6
 NUMBER_OF_ROWS = 3
@@ -19,7 +19,7 @@ for x in range(0, NUMBER_OF_SAMPLES_PER_METHOD):
 
 plt.show();
 
-for process in [spectogram, periodGram, cwt]:
+for process in [spectogram, periodGram, cwt, stft]:
     for x in range(0, NUMBER_OF_SAMPLES_PER_METHOD-1, 2):
         sample, label = generator(x)
         plt.subplot(NUMBER_OF_ROWS, NUMBER_OF_COLUMNS, x+1)
