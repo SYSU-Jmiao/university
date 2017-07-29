@@ -12,23 +12,23 @@ generator = getSignalWithLabelGenerator(initDb)
 
 for x in range(0, NUMBER_OF_SAMPLES_PER_METHOD):
     sample, label = generator(x)
-    plt.subplot(NUMBER_OF_ROWS, NUMBER_OF_COLUMNS, x+1)
+    plt.subplot(NUMBER_OF_ROWS, NUMBER_OF_COLUMNS, x + 1)
     plt.tight_layout()
     plt.title(label)
     crossSpectrumDensity(sample)
 
-plt.show();
+plt.show()
 
 for process in [spectogram, periodGram, cwt, stft]:
-    for x in range(0, NUMBER_OF_SAMPLES_PER_METHOD-1, 2):
+    for x in range(0, NUMBER_OF_SAMPLES_PER_METHOD - 1, 2):
         sample, label = generator(x)
-        plt.subplot(NUMBER_OF_ROWS, NUMBER_OF_COLUMNS, x+1)
+        plt.subplot(NUMBER_OF_ROWS, NUMBER_OF_COLUMNS, x + 1)
         plt.tight_layout()
         process(sample[0])
-        plt.title( " I " + label)
-        plt.subplot(NUMBER_OF_ROWS, NUMBER_OF_COLUMNS, x+2)
+        plt.title(" I " + label)
+        plt.subplot(NUMBER_OF_ROWS, NUMBER_OF_COLUMNS, x + 2)
         plt.tight_layout()
         process(sample[1])
-        plt.title( " Q " + label)
+        plt.title(" Q " + label)
 
-    plt.show();
+    plt.show()
