@@ -1,27 +1,30 @@
+import cPickle
+import io
 import os
 import random
+import sys
+
+import keras
+import keras.models as models
+import matplotlib.pyplot as plt
+import missinglink
+import numpy as np
+import seaborn as sns
+from IPython.core.interactiveshell import InteractiveShell
+######
+from keras import applications
+from keras.layers.convolutional import Conv2D, MaxPooling2D, ZeroPadding2D
+from keras.layers.core import Activation, Dense, Dropout, Flatten, Reshape
+from keras.layers.noise import GaussianNoise
+from keras.optimizers import adam
+from keras.preprocessing.image import ImageDataGenerator
+from keras.regularizers import *
+from keras.utils import np_utils
+from PIL import Image
+from scipy import interpolate, signal
 
 os.environ["KERAS_BACKEND"] = "tensorflow"
 os.environ["KERAS_FLAGS"] = "device=gpu%d" % (0)
-
-import numpy as np
-from keras.utils import np_utils
-import keras.models as models
-from keras.layers.core import Reshape, Dense, Dropout, Activation, Flatten
-from keras.layers.noise import GaussianNoise
-from keras.layers.convolutional import Conv2D, MaxPooling2D, ZeroPadding2D
-from keras.preprocessing.image import ImageDataGenerator
-from keras.regularizers import *
-from keras.optimizers import adam
-import matplotlib.pyplot as plt
-import seaborn as sns
-import cPickle
-import random
-import sys
-import keras
-import missinglink
-
-from IPython.core.interactiveshell import InteractiveShell
 
 
 # Load the dataset ...
@@ -62,13 +65,11 @@ Y_train = to_onehot(map(lambda x: mods.index(lbl[x][0]), train_idx))
 Y_test = to_onehot(map(lambda x: mods.index(lbl[x][0]), test_idx))
 
 
-in_shp = list(X_train.shape[1:])
+in_shp = [3, 224, 224]
 print X_train.shape, in_shp
 classes = mods
 
 
-######
-from keras import applications
 model = applications.VGG16(include_top=False, weights='imagenet')
 
 
@@ -94,8 +95,6 @@ batch_size = 16  # training batch size
 
 # Generate
 
-from scipy import interpolate, signal
-
 
 def getOverSampledSignal(sample, overSampleFactor):
     sampleSize = sample.shape[0]
@@ -107,36 +106,40 @@ def getOverSampledSignal(sample, overSampleFactor):
 
 
 def cwt(x):
-    index = random.randint(1, 100)
-
-    vector = x[0]
-    sNew = getOverSampledSignal(vector, 8)
+    sNew = getOverSampledSignal(x, 8)
     width = 32
     widths = np.arange(1, width)
     cwtmatr = signal.cwt(sNew, signal.ricker, widths)
     plt.imshow(cwtmatr, extent=[-1, 1, 1, width],
                cmap='PRGn', aspect='auto', vmax=abs(cwtmatr).max(), vmin=-abs(cwtmatr).max())
     plt.draw()
-    plt.savefig('./backups/' + str(index) + '_I' + '.png', dpi=100)
+    plt.axis('off')
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', bbox_inches='tight', pad_inches=0)
+    buf.seek(0)
     plt.close()
-
-    vector = x[1]
-    sNew = getOverSampledSignal(vector, 8)
-    width = 32
-    widths = np.arange(1, width)
-    cwtmatr = signal.cwt(sNew, signal.ricker, widths)
-    plt.imshow(cwtmatr, extent=[-1, 1, 1, width],
-               cmap='PRGn', aspect='auto', vmax=abs(cwtmatr).max(), vmin=-abs(cwtmatr).max())
-    plt.draw()
-    plt.savefig('./backups/' + str(index) + '_Q' + '.png', dpi=100)
-    plt.close()
-
-    return
+    return Image.open(buf)
 
 
 def preprocessor(x):
-    image = cwt(x)
-    return x
+    print x.shape
+    i, q = x[0], x[1]
+    vgg16ImageSize = (224, 224)
+    finalImage = np.empty((224, 224, 3), dtype=np.uint8)
+
+    iImg = cwt(i)
+    qImg = cwt(q)
+
+    iImg = iImg.resize(vgg16ImageSize)
+    grayI = iImg.convert('L')
+    qImg = qImg.resize(vgg16ImageSize)
+    grayQ = qImg.convert('L')
+
+    h, w = qImg.size
+    finalImage[:, :, 0] = grayI
+    finalImage[:, :, 1] = grayQ
+    # Image.fromarray(finalImage).save("test.png")
+    return finalImage
 
 
 train_datagen = ImageDataGenerator(preprocessing_function=preprocessor)
@@ -146,11 +149,7 @@ train_generator = train_datagen.flow(
 validate_datagen = ImageDataGenerator(preprocessing_function=preprocessor)
 validate_generator = train_datagen.flow(X_test, Y_test, batch_size)
 
-# perform training ...
-missinglink_callback = missinglink.KerasCallback(
-    owner_id="73b7dbec-273d-c6b7-776d-55812449a4e4", project_token="WxqnIeHhwiLIFejy")
-missinglink_callback.set_properties(
-    display_name='Base experiment', description='Initial base mode for experiment')
+
 #   - call the main training loop in keras for our network+dataset
 filepath = 'convmodrecnets_CNN2_0.5.wts.h5'
 history = model.fit_generator(
