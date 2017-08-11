@@ -65,7 +65,7 @@ Y_train = to_onehot(map(lambda x: mods.index(lbl[x][0]), train_idx))
 Y_test = to_onehot(map(lambda x: mods.index(lbl[x][0]), test_idx))
 
 
-in_shp = [3, 224, 224]
+in_shp = [224, 224, 3]
 print X_train.shape, in_shp
 classes = mods
 
@@ -121,7 +121,7 @@ def cwt(x):
     return Image.open(buf)
 
 
-def preprocessor(x):
+def preprocessor(x, index):
     print x.shape
     i, q = x[0], x[1]
     vgg16ImageSize = (224, 224)
@@ -138,25 +138,36 @@ def preprocessor(x):
     h, w = qImg.size
     finalImage[:, :, 0] = grayI
     finalImage[:, :, 1] = grayQ
-    # Image.fromarray(finalImage).save("test.png")
+    Image.fromarray(finalImage).save(str(index) + ".png")
     return finalImage
 
 
-train_datagen = ImageDataGenerator(preprocessing_function=preprocessor)
-train_generator = train_datagen.flow(
-    X_train, Y_train, batch_size, save_to_dir="generated")
+def train_generator():
+    index = 0
+    while index <= X_train.shape[0]:
+        originalSample = X_train[index]
+        postProcessedImage = preprocessor(originalSample, index)
+        label = Y_train[index]
+        yield(postProcessedImage, label)
+        index = index + 1
 
-validate_datagen = ImageDataGenerator(preprocessing_function=preprocessor)
-validate_generator = train_datagen.flow(X_test, Y_test, batch_size)
 
+def validate_generator():
+    index = 0
+    while index <= X_test.shape[0]:
+        originalSample = X_test[index]
+        postProcessedImage = preprocessor(originalSample, index)
+        label = Y_test[index]
+        yield(postProcessedImage, label)
+        index = index + 1
 
-#   - call the main training loop in keras for our network+dataset
+    #   - call the main training loop in keras for our network+dataset
 filepath = 'convmodrecnets_CNN2_0.5.wts.h5'
 history = model.fit_generator(
-    train_generator,
+    train_generator(),
     steps_per_epoch=X_train.shape[0] / batch_size,
-    validation_data=validate_generator,
-    validation_steps=X_test.shape[0] / batch_size,
+    # validation_data=validate_generator(),
+    # validation_steps=X_test.shape[0] / batch_size,
     epochs=nb_epoch,
     callbacks=[
         keras.callbacks.ModelCheckpoint(
@@ -170,5 +181,5 @@ history = model.fit_generator(
 model.load_weights(filepath)
 
 
-score = model.evaluate(X_test, Y_test, verbose=0, batch_size=batch_size)
-print score
+# score = model.evaluate(X_test, Y_test, verbose=0, batch_size=batch_size)
+# print score
