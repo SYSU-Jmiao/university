@@ -121,8 +121,7 @@ def cwt(x):
     return Image.open(buf)
 
 
-def preprocessor(x, index):
-    print x.shape
+def preprocessor(x):
     i, q = x[0], x[1]
     vgg16ImageSize = (224, 224)
     finalImage = np.empty((224, 224, 3), dtype=np.uint8)
@@ -138,37 +137,41 @@ def preprocessor(x, index):
     h, w = qImg.size
     finalImage[:, :, 0] = grayI
     finalImage[:, :, 1] = grayQ
-    Image.fromarray(finalImage).save(str(index) + ".png")
+    Image.fromarray(finalImage).save("test.png")
     return finalImage
 
 
 def train_generator():
     index = 0
     while index <= X_train.shape[0]:
-        originalSample = X_train[index]
-        postProcessedImage = preprocessor(originalSample, index)
-        label = Y_train[index]
-        yield(postProcessedImage, label)
-        index = index + 1
+        labels = Y_train[index:(index + batch_size)]
+        samples = np.empty((batch_size, 224, 224, 3), dtype=np.uint8)
+        originalSamples = X_train[index:(index + batch_size)]
+        xIndex = 0
+        while xIndex <= batch_size:
+            samples[xIndex, :, :, :] = preprocessor(originalSamples[xIndex])
 
+        yield(samples, labels)
+        index = index + batch_size
 
-def validate_generator():
-    index = 0
-    while index <= X_test.shape[0]:
-        originalSample = X_test[index]
-        postProcessedImage = preprocessor(originalSample, index)
-        label = Y_test[index]
-        yield(postProcessedImage, label)
-        index = index + 1
+# def validate_generator():
+#     index = 0
+#     while index <= X_test.shape[0]:
+#         originalSample = X_test[index]
+#         postProcessedImage = preprocessor(originalSample)
+#         label = Y_test[index]
+#         yield(postProcessedImage, label)
+#         index = index + 1
+
 
     #   - call the main training loop in keras for our network+dataset
 filepath = 'convmodrecnets_CNN2_0.5.wts.h5'
 history = model.fit_generator(
     train_generator(),
-    steps_per_epoch=X_train.shape[0] / batch_size,
+    steps_per_epoch=(X_train.shape[0] / batch_size),
+    epochs=nb_epoch,
     # validation_data=validate_generator(),
     # validation_steps=X_test.shape[0] / batch_size,
-    epochs=nb_epoch,
     callbacks=[
         keras.callbacks.ModelCheckpoint(
             filepath, monitor='val_loss', verbose=0, save_best_only=True, mode='auto'),
