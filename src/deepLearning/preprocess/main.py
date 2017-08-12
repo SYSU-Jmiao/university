@@ -141,7 +141,7 @@ def preprocessor(x, name):
     h, w = qImg.size
     finalImage[:, :, 0] = grayI
     finalImage[:, :, 1] = grayQ
-    Image.fromarray(finalImage).save(name + ".png")
+    # Image.fromarray(finalImage).save(name + ".png")
     return finalImage
 
 
@@ -176,7 +176,7 @@ history = model.fit_generator(
         keras.callbacks.EarlyStopping(
             monitor='val_loss', patience=5, verbose=0, mode='auto'),
         keras.callbacks.TensorBoard(
-            log_dir='./logs', histogram_freq=0, write_graph=True, write_images=False)
+            log_dir='./logs', histogram_freq=0, write_graph=True, write_images=True)
     ])
 # we re-load the best weights once training is finished
 model.load_weights(filepath)
