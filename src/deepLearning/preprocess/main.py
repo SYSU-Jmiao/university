@@ -26,6 +26,10 @@ from scipy import interpolate, signal
 os.environ["KERAS_BACKEND"] = "tensorflow"
 os.environ["KERAS_FLAGS"] = "device=gpu%d" % (0)
 
+GENERATED_PATH = './generated/'
+if not os.path.exists(GENERATED_PATH):
+    os.mkdir(GENERATED_PATH)
+
 
 # Load the dataset ...
 #  You will need to seperately download or generate this file
@@ -90,7 +94,7 @@ model.summary()
 
 # Set up some params
 nb_epoch = 50     # number of epochs to train on
-batch_size = 16  # training batch size
+batch_size = 200  # training batch size
 
 
 # Generate
@@ -121,7 +125,7 @@ def cwt(x):
     return Image.open(buf)
 
 
-def preprocessor(x):
+def preprocessor(x, name):
     i, q = x[0], x[1]
     vgg16ImageSize = (224, 224)
     finalImage = np.empty((224, 224, 3), dtype=np.uint8)
@@ -137,34 +141,22 @@ def preprocessor(x):
     h, w = qImg.size
     finalImage[:, :, 0] = grayI
     finalImage[:, :, 1] = grayQ
-    # Image.fromarray(finalImage).save("test.png")
+    Image.fromarray(finalImage).save(name + ".png")
     return finalImage
 
 
-def train_generator():
+def train_generator(x, y, prefix):
     index = 0
-    while index <= X_train.shape[0]:
-        labels = Y_train[index:(index + batch_size)]
+    while index < x.shape[0]:
+        labels = y[index:(index + batch_size)]
         samples = np.empty((batch_size, 224, 224, 3), dtype=np.uint8)
-        originalSamples = X_train[index:(index + batch_size)]
+        originalSamples = x[index:(index + batch_size)]
         xIndex = 0
-        while xIndex <= batch_size:
-            samples[xIndex, :, :, :] = preprocessor(originalSamples[xIndex])
-
-        yield(samples, labels)
-        index = index + batch_size
-
-
-def validate_generator():
-    index = 0
-    while index <= X_test.shape[0]:
-        labels = Y_test[index:(index + batch_size)]
-        samples = np.empty((batch_size, 224, 224, 3), dtype=np.uint8)
-        originalSamples = X_test[index:(index + batch_size)]
-        xIndex = 0
-        while xIndex <= batch_size:
-            samples[xIndex, :, :, :] = preprocessor(originalSamples[xIndex])
-
+        while xIndex < batch_size:
+            name = GENERATED_PATH + prefix + "_" + str(index + xIndex)
+            samples[xIndex, :, :, :] = preprocessor(
+                originalSamples[xIndex], name)
+            xIndex = xIndex + 1
         yield(samples, labels)
         index = index + batch_size
 
@@ -173,10 +165,10 @@ def validate_generator():
 filepath = 'convmodrecnets_CNN2_0.5.wts.h5'
 
 history = model.fit_generator(
-    train_generator(),
+    train_generator(X_train, Y_train, "train"),
     steps_per_epoch=(X_train.shape[0] / batch_size),
     epochs=nb_epoch,
-    validation_data=validate_generator(),
+    validation_data=train_generator(X_test, Y_test, "validate"),
     validation_steps=X_test.shape[0] / batch_size,
     callbacks=[
         keras.callbacks.ModelCheckpoint(
@@ -192,5 +184,6 @@ model.load_weights(filepath)
 
 # score = model.evaluate(X_test, Y_test, verbose=0, batch_size=batch_size)
 print "**** CALCULATING SCORE*****"
-score = model.evaluate_generator(validate_generator())
+score = model.evaluate_generator(
+    train_generator(X_test, Y_test, "evaluate"), steps=(X_test.shape[0] / batch_size))
 print score
