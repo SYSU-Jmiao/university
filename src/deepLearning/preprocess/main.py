@@ -99,7 +99,6 @@ batch_size = 200  # training batch size
 
 # Generate
 
-
 def getOverSampledSignal(sample, overSampleFactor):
     sampleSize = sample.shape[0]
     t = np.arange(0, sampleSize, 1)
@@ -166,6 +165,9 @@ filepath = 'convmodrecnets_CNN2_0.5.wts.h5'
 
 history = model.fit_generator(
     train_generator(X_train, Y_train, "train"),
+    max_queue_size=50,
+    # workers=4,
+    use_multiprocessing=True,
     steps_per_epoch=(X_train.shape[0] / batch_size),
     epochs=nb_epoch,
     validation_data=train_generator(X_test, Y_test, "validate"),

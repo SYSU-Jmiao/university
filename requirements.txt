@@ -22,7 +22,7 @@ jupyter==1.0.0
 jupyter-client==5.0.1
 jupyter-console==5.1.0
 jupyter-core==4.3.0
-Keras==2.0.4
+Keras==2.0.6
 MarkupSafe==1.0
 matplotlib==2.0.2
 missinglink-kernel==0.536
