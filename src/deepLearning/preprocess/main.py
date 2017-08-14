@@ -163,10 +163,13 @@ def train_generator(x, y, prefix):
 #   - call the main training loop in keras for our network+dataset
 filepath = 'convmodrecnets_CNN2_0.5.wts.h5'
 
+missinglink_callback = missinglink.KerasCallback(
+    owner_id="73b7dbec-273d-c6b7-776d-55812449a4e4", project_token="WxqnIeHhwiLIFejy")
+missinglink_callback.set_properties(class_mapping=classes)
+
 history = model.fit_generator(
     train_generator(X_train, Y_train, "train"),
     max_queue_size=50,
-    # workers=4,
     use_multiprocessing=True,
     steps_per_epoch=(X_train.shape[0] / batch_size),
     epochs=nb_epoch,
@@ -178,7 +181,8 @@ history = model.fit_generator(
         keras.callbacks.EarlyStopping(
             monitor='val_loss', patience=5, verbose=0, mode='auto'),
         keras.callbacks.TensorBoard(
-            log_dir='./logs', histogram_freq=0, write_graph=True, write_images=True)
+            log_dir='./logs', histogram_freq=0, write_graph=True, write_images=True),
+        missinglink_callback
     ])
 # we re-load the best weights once training is finished
 model.load_weights(filepath)
