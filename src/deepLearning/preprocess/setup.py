@@ -11,5 +11,8 @@ setup(name='radioML_cwt',
       license='MIT',
       install_requires=[
           'keras',
+          'matplotlib',
+          'missinglink-sdk',
+          'Pillow',
           'h5py'],
       zip_safe=False)
