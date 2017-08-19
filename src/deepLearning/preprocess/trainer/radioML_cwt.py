@@ -193,8 +193,6 @@ history = model.fit_generator(
     validation_data=train_generator(X_test, Y_test, "validate"),
     validation_steps=X_test.shape[0] / batch_size,
     callbacks=[
-        keras.callbacks.ModelCheckpoint(
-            filepath, monitor='val_loss', verbose=0, save_best_only=True, mode='auto'),
         keras.callbacks.EarlyStopping(
             monitor='val_loss', patience=5, verbose=0, mode='auto'),
         keras.callbacks.TensorBoard(
@@ -202,11 +200,14 @@ history = model.fit_generator(
         missinglink_callback
     ])
 # we re-load the best weights once training is finished
-model.load_weights(filepath)
+score = model.evaluate(X_test, Y_test, verbose=0)
+print('Test loss:', score[0])
+print('Test accuracy:', score[1])
 
 
-# score = model.evaluate(X_test, Y_test, verbose=0, batch_size=batch_size)
-print "**** CALCULATING SCORE*****"
-score = model.evaluate_generator(
-    train_generator(X_test, Y_test, "evaluate"), steps=(X_test.shape[0] / batch_size))
-print score
+# Save the model locally
+model.save('model.h5')
+# Save the model to the Cloud Storage bucket's jobs directory
+with file_io.FileIO('model.h5', mode='r') as input_f:
+    with file_io.FileIO(job_dir + '/model.h5', mode='w+') as output_f:
+        output_f.write(input_f.read())
