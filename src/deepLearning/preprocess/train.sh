@@ -1,7 +1,7 @@
-export BUCKET_NAME=yonidavidson-university
-export JOB_NAME="radioMl_cwt_$(date +%Y%m%d_%H%M%S)"
-export JOB_DIR=gs://$BUCKET_NAME/$JOB_NAME
-export REGION=us-east1
+# export BUCKET_NAME=yonidavidson-university
+# export JOB_NAME="radioMl_cwt_$(date +%Y%m%d_%H%M%S)"
+# export JOB_DIR=gs://$BUCKET_NAME/$JOB_NAME
+# export REGION=us-east1
 
 # local
 # gcloud ml-engine local train \
@@ -12,10 +12,26 @@ export REGION=us-east1
 #   --train-file ./data/RML2016.10a_dict.dat
 
 #cloud
+  # gcloud ml-engine jobs submit training $JOB_NAME \
+  #   --job-dir $JOB_DIR \
+  #   --runtime-version 1.0 \
+  #   --module-name trainer.radioML_cwt \
+  #   --package-path ./trainer \
+  #   --region $REGION \
+  #   -- \
+  #   --train-file gs://$BUCKET_NAME/data/RML2016.10a_dict.dat
+
+
+export BUCKET_NAME=yonidavidson-university
+export JOB_NAME="preprocess_cwt_$(date +%Y%m%d_%H%M%S)"
+export JOB_DIR=gs://$BUCKET_NAME/$JOB_NAME
+export REGION=us-east1
+
+    #cloud - preprocess
   gcloud ml-engine jobs submit training $JOB_NAME \
     --job-dir $JOB_DIR \
     --runtime-version 1.0 \
-    --module-name trainer.radioML_cwt \
+    --module-name trainer.preprocess_cwt \
     --package-path ./trainer \
     --region $REGION \
     -- \

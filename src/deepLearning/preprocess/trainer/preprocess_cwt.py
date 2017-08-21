@@ -1,26 +1,17 @@
 
-# coding: utf-8
-
-# In[2]:
-
-
 from tensorflow.python.lib.io import file_io
 import pickle
 import numpy as np
 from PIL import Image
 from scipy import interpolate, signal
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-
-
-# In[3]:
+import io
 
 
 BUCKET_NAME = "yonidavidson-university"
 train_file = "gs://" + BUCKET_NAME + "/data/RML2016.10a_dict.dat"
-
-
-# In[4]:
-
 
 # Load the dataset ...
 
@@ -38,14 +29,8 @@ for mod in mods:
 X = np.vstack(X)
 
 
-# In[5]:
-
-
 X_samples = np.expand_dims(X, 3)
 print X_samples.shape
-
-
-# In[6]:
 
 
 def to_onehot(yy):
@@ -59,17 +44,8 @@ Y_samples = to_onehot(map(lambda x: mods.index(
 print Y_samples.shape
 
 
-# In[7]:
-
-
 classes = mods
 print classes
-
-
-# In[10]:
-
-
-import io
 
 
 def getOverSampledSignal(sample, overSampleFactor):
