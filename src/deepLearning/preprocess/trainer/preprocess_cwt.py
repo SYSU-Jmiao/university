@@ -8,12 +8,14 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import io
+import h5py
 
 
 BUCKET_NAME = "yonidavidson-university"
 train_file = "gs://" + BUCKET_NAME + "/data/RML2016.10a_dict.dat"
 
-# Load the dataset ...
+h5pyf = h5py.File("data_cwt.hdf5", "w")
+dset = h5pyf.create_dataset("X_samples", (220000, 224, 224, 3), dtype='uint8')
 
 f = file_io.FileIO(train_file, mode='r')
 Xd = pickle.load(f)
@@ -42,7 +44,6 @@ def to_onehot(yy):
 Y_samples = to_onehot(map(lambda x: mods.index(
     lbl[x][0]), np.arange(X_samples.shape[0])))
 print Y_samples.shape
-
 
 classes = mods
 print classes
@@ -91,41 +92,46 @@ def preprocessor(index, x):
             finalImage[:, :, 1] = grayQ
             if not index % 100:
                 print str(index)
-            return finalImage
+            dset[index] = finalImage
 
 
-# In[ ]:
+for i in range(1000):
+    preprocessor(i, X_samples[i])
+
+print Y_samples.shape
+print Y_samples.dtype
+labels_dset = h5pyf.create_dataset("Y_samples", (220000, 11), dtype='float64')
+for i in range(1000):
+    labels_dset[i] = Y_samples[i]
+
+print len(classes)
+print classes
+classes_dset = h5pyf.create_dataset("Classes", (11,), dtype='S10')
+for i in range(11):
+    classes_dset[i] = classes[i]
 
 
-X_samples_cwt = map(lambda (index, x): preprocessor(
-    index, x), enumerate(X_samples))
+print len(snrs)
+snrs_dset = h5pyf.create_dataset("Snrs", (20,), dtype='int')
+for i in range(20):
+    snrs_dset[i] = snrs[i]
+
+print len(lbl)
+print lbl[0]
+lbl_class_dset = h5pyf.create_dataset("LabelClass", (220000,), dtype='S10')
+lbl_snr_dset = h5pyf.create_dataset("LabelSnr", (220000,), dtype='int')
 
 
-# In[ ]:
+print 'load label class'
+for i in range(1000):
+    lbl_class_dset[i] = lbl[i][0]
 
+print 'load label snr'
+for i in range(1000):
+    lbl_snr_dset[i] = lbl[i][1]
 
-print X_samples_cwt[0]
+h5pyf.close()
 
-
-# In[ ]:
-
-
-post_data = {}
-post_data["X"] = X_samples_cwt
-post_data["Y"] = Y_samples
-post_data["classes"] = classes
-post_data["snrs"] = snrs
-
-
-# In[ ]:
-
-
-pickle.dump(post_data, open("post_data.p", "wb"))
-
-
-# In[ ]:
-
-
-with file_io.FileIO("post_data.p", mode='r') as input_f:
-    with file_io.FileIO("gs://" + BUCKET_NAME + "/data" + '/post_cwt_data.dat', mode='w+') as output_f:
-        output_f.write(input_f.read())
+# with file_io.FileIO("data_cwt.hdf5", mode='r') as input_f:
+#     with file_io.FileIO("gs://" + BUCKET_NAME + "/data" + '/data_cwt.hdf5', mode='w+') as output_f:
+#         output_f.write(input_f.read())
