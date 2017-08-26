@@ -95,13 +95,13 @@ def preprocessor(index, x):
             dset[index] = finalImage
 
 
-for i in range(1000):
+for i in range(200000):
     preprocessor(i, X_samples[i])
 
 print Y_samples.shape
 print Y_samples.dtype
 labels_dset = h5pyf.create_dataset("Y_samples", (220000, 11), dtype='float64')
-for i in range(1000):
+for i in range(200000):
     labels_dset[i] = Y_samples[i]
 
 print len(classes)
@@ -123,11 +123,11 @@ lbl_snr_dset = h5pyf.create_dataset("LabelSnr", (220000,), dtype='int')
 
 
 print 'load label class'
-for i in range(1000):
+for i in range(200000):
     lbl_class_dset[i] = lbl[i][0]
 
 print 'load label snr'
-for i in range(1000):
+for i in range(200000):
     lbl_snr_dset[i] = lbl[i][1]
 
 h5pyf.close()
