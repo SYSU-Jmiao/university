@@ -3,14 +3,17 @@ import io
 import os
 import random
 import sys
+import argparse
+
 
 import keras
 import keras.models as models
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import missinglink
 import numpy as np
-import seaborn as sns
-from IPython.core.interactiveshell import InteractiveShell
+
 ######
 from keras import applications
 from keras.layers.convolutional import Conv2D, MaxPooling2D, ZeroPadding2D
@@ -22,18 +25,32 @@ from keras.regularizers import *
 from keras.utils import np_utils
 from PIL import Image
 from scipy import interpolate, signal
+from tensorflow.python.lib.io import file_io  # for better file I/O
+import pickle
 
 os.environ["KERAS_BACKEND"] = "tensorflow"
 os.environ["KERAS_FLAGS"] = "device=gpu%d" % (0)
 
-GENERATED_PATH = './generated/'
-if not os.path.exists(GENERATED_PATH):
-    os.mkdir(GENERATED_PATH)
-
+# Parse the input arguments for common Cloud ML Engine options
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    '--train-file',
+    help='Cloud Storage bucket or local path to training data')
+parser.add_argument(
+    '--job-dir',
+    help='Cloud storage bucket to export the model and store temp files')
+args = parser.parse_args()
+arguments = args.__dict__
+print "*******ARGUMETNS*********"
+print arguments
+print "*************************"
+train_file = arguments['train_file']
+job_dir = arguments['job_dir']
 
 # Load the dataset ...
 #  You will need to seperately download or generate this file
-Xd = cPickle.load(open("/opt/RML2016.10a_dict.dat", 'rb'))
+f = file_io.FileIO(train_file, mode='r')
+Xd = pickle.load(f)
 snrs, mods = map(lambda j: sorted(
     list(set(map(lambda x: x[j], Xd.keys())))), [1, 0])
 X = []
@@ -152,7 +169,7 @@ def train_generator(x, y, prefix):
         originalSamples = x[index:(index + batch_size)]
         xIndex = 0
         while xIndex < batch_size:
-            name = GENERATED_PATH + prefix + "_" + str(index + xIndex)
+            name = job_dir + prefix + "_" + str(index + xIndex)
             samples[xIndex, :, :, :] = preprocessor(
                 originalSamples[xIndex], name)
             xIndex = xIndex + 1
@@ -161,7 +178,7 @@ def train_generator(x, y, prefix):
 
 
 #   - call the main training loop in keras for our network+dataset
-filepath = 'convmodrecnets_CNN2_0.5.wts.h5'
+filepath = job_dir + 'convmodrecnets_CNN2_0.5.wts.h5'
 
 missinglink_callback = missinglink.KerasCallback(
     owner_id="73b7dbec-273d-c6b7-776d-55812449a4e4", project_token="WxqnIeHhwiLIFejy")
@@ -176,8 +193,6 @@ history = model.fit_generator(
     validation_data=train_generator(X_test, Y_test, "validate"),
     validation_steps=X_test.shape[0] / batch_size,
     callbacks=[
-        keras.callbacks.ModelCheckpoint(
-            filepath, monitor='val_loss', verbose=0, save_best_only=True, mode='auto'),
         keras.callbacks.EarlyStopping(
             monitor='val_loss', patience=5, verbose=0, mode='auto'),
         keras.callbacks.TensorBoard(
@@ -185,11 +200,14 @@ history = model.fit_generator(
         missinglink_callback
     ])
 # we re-load the best weights once training is finished
-model.load_weights(filepath)
+score = model.evaluate(X_test, Y_test, verbose=0)
+print('Test loss:', score[0])
+print('Test accuracy:', score[1])
 
 
-# score = model.evaluate(X_test, Y_test, verbose=0, batch_size=batch_size)
-print "**** CALCULATING SCORE*****"
-score = model.evaluate_generator(
-    train_generator(X_test, Y_test, "evaluate"), steps=(X_test.shape[0] / batch_size))
-print score
+# Save the model locally
+model.save('model.h5')
+# Save the model to the Cloud Storage bucket's jobs directory
+with file_io.FileIO('model.h5', mode='r') as input_f:
+    with file_io.FileIO(job_dir + '/model.h5', mode='w+') as output_f:
+        output_f.write(input_f.read())
