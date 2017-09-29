@@ -1,4 +1,4 @@
-ENV
-*.pyc 
+VIRTUAL
+*.pyc
 *.h5
 logs
