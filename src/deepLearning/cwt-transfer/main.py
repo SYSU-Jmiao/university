@@ -4,24 +4,35 @@
 # In[1]:
 
 
+# https://gist.github.com/fchollet/f35fbc80e066a49d65f1688a7e99f069
+# https://github.com/rajshah4/image_keras/blob/master/notebook.ipynb
+# https://blog.keras.io/building-powerful-image-classification-models-using-very-little-data.html
+# http://www.codesofinterest.com/2017/08/bottleneck-features-multi-class-classification-keras.html
+
+
+# In[14]:
+
+
 get_ipython().system(u'pip install keras')
 get_ipython().system(u'pip install h5py')
 get_ipython().system(u'pip install missinglink-sdk')
 
 
-# In[2]:
+# In[15]:
 
 
+import keras
 from keras import applications
 from keras.preprocessing.image import ImageDataGenerator
 from keras import optimizers
 from keras.models import Sequential
-from keras.layers import Dropout, Flatten, Dense, Activation
+from keras.layers import Dropout, Flatten, Dense, Activation, Reshape
+from keras.utils.np_utils import to_categorical
 import numpy as np
 import missinglink
 
 
-# In[3]:
+# In[16]:
 
 
 import h5py
@@ -32,14 +43,14 @@ f = h5py.File(filename, 'r')
 print("Keys: %s" % f.keys())
 
 
-# In[4]:
+# In[17]:
 
 
 X = f['X_samples']
 Y = f['Y_samples']
 
 
-# In[5]:
+# In[18]:
 
 
 np.random.seed(2016)
@@ -49,7 +60,7 @@ train_idx = np.random.choice(range(0,int(n_examples)), size=int(n_train), replac
 test_idx = list(set(range(0,n_examples))-set(train_idx))
 
 
-# In[6]:
+# In[19]:
 
 
 def generate_data_from_hdf5(X_list,Y_list ,indexs ,batchSize):
@@ -63,7 +74,7 @@ def generate_data_from_hdf5(X_list,Y_list ,indexs ,batchSize):
         yield (np.array(x),np.array(y))
 
 
-# In[7]:
+# In[20]:
 
 
 in_shp = list(X.shape[1:])
@@ -71,7 +82,7 @@ print X.shape, in_shp
 classes = f['Classes']
 
 
-# In[8]:
+# In[21]:
 
 
 # dimensions of our images.
@@ -86,11 +97,10 @@ epochs = 50
 batch_size = 16
 
 
-# In[9]:
+# In[22]:
 
 
 def save_bottlebeck_features(X, Y, train_idx, test_idx, batch_size):
-    datagen = ImageDataGenerator(rescale=1. / 255)
 
     # build the VGG16 network
     model = applications.VGG16(include_top=False, weights='imagenet')
@@ -108,29 +118,54 @@ def save_bottlebeck_features(X, Y, train_idx, test_idx, batch_size):
             bottleneck_features_validation)
 
 
-# In[10]:
+# In[26]:
 
 
 def train_top_model():
     train_data = np.load(open('bottleneck_features_train.npy'))
-    train_labels = np.array(
-        [0] * (nb_train_samples / 2) + [1] * (nb_train_samples / 2))
+    train_labels = np.array([0] * (nb_train_samples // 2) + [1] * (nb_train_samples // 2))
+    print "train"
+    print train_data.shape
+    print train_labels.shape
+    print train_labels[40]
+
+    # convert the training labels to categorical vectors
+    train_labels = to_categorical(train_labels, num_classes=11)
+    print train_labels.shape
+    print train_labels[40]
 
     validation_data = np.load(open('bottleneck_features_validation.npy'))
-    validation_labels = np.array(
-        [0] * (nb_validation_samples / 2) + [1] * (nb_validation_samples / 2))
+    validation_labels = np.array([0] * (nb_validation_samples // 2) + [1] * (nb_validation_samples // 2))
+
+    print "validation"
+    print validation_data.shape
+    print validation_labels.shape
+    print validation_labels[40]
+
+    # convert the training labels to categorical vectors
+    validation_labels = to_categorical(validation_labels, num_classes=11)
+    print validation_labels.shape
+    print validation_labels[40]
 
     top_model = Sequential()
-#   top_model.add(Flatten(input_shape=model.output_shape[1:]))
-    top_model.add(Flatten(input_shape=train_data.shape[1:]))
-    top_model.add(Dense(256, activation='relu'))
+    top_model.add(Flatten(input_shape=train_data.shape[1:], name="flatten1"))
+    print top_model.output_shape
+    top_model.add(Dense(256, activation='relu', name="dense1"))
+    print top_model.output_shape
+    top_model.add(Dropout(0.5))
+    print top_model.output_shape
     top_model.add(Dense(11, kernel_initializer="he_normal", name="dense2"))
+    print top_model.output_shape
     top_model.add(Activation('softmax'))
-    top_model.add(Reshape([len(classes)]))
+    print top_model.output_shape
+    top_model.add(Reshape([len(classes)], name="reshape2"))
+    print top_model.output_shape
     top_model.compile(loss='categorical_crossentropy', optimizer='adam')
-    
+
     missinglink_callback = missinglink.KerasCallback(owner_id="73b7dbec-273d-c6b7-776d-55812449a4e4", project_token="WxqnIeHhwiLIFejy")
     missinglink_callback.set_properties(display_name='cwt transfer learning', description='basic transfer using cwt preprocessing')
+#     filepath = 'convmodrecnets_CNN2_0.5.wts.h5'
+#     keras.callbacks.ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=True, mode='auto'),
 
     top_model.fit(train_data, train_labels,
               epochs=epochs,
@@ -138,28 +173,29 @@ def train_top_model():
               validation_data=(validation_data, validation_labels),
               verbose=2,
               callbacks = [
-              keras.callbacks.ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=True, mode='auto'),
-              keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, verbose=0, mode='auto'),
+#               keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, verbose=0, mode='auto'),
               keras.callbacks.TensorBoard(log_dir='./logs', histogram_freq=0, write_graph=True, write_images=False),
               missinglink_callback
     ])
     top_model.save_weights(top_model_weights_path)
 
 
-# In[11]:
+# In[24]:
 
 
 save_bottlebeck_features(X, Y,train_idx, test_idx,batch_size )
+
+
+# In[27]:
+
+
 train_top_model()
 
 
 # In[ ]:
 
 
-# https://gist.github.com/fchollet/f35fbc80e066a49d65f1688a7e99f069
+
 
 
 # In[ ]:
-
-
-
