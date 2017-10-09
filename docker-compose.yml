@@ -1,0 +1,10 @@
+version: '2'
+
+services:
+  datalab:
+    image: gcr.io/cloud-datalab/datalab:local
+    env_file: docker-compose.env
+    ports:
+      - 8081:8080
+    volumes:
+      - $HOME:/content
