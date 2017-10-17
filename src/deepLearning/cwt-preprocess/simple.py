@@ -12,7 +12,7 @@ from PIL import Image
 
 
 
-# In[2]:
+# In[152]:
 
 
 # Load the dataset ...
@@ -26,37 +26,37 @@ for mod in mods:
         for i in range(Xd[(mod,snr)].shape[0]):  lbl.append((mod,snr))
 X = np.vstack(X)
 
+X_snr = map(lambda x: lbl[x][1], range(0,n_examples))
+X_mod = map(lambda x: lbl[x][0], range(0,n_examples))
 
-# In[3]:
+
+# In[153]:
 
 
-# Partition the data
-#  into training and test sets of the form we can train/test on
-#  while keeping SNR and Mod labels handy for each
-np.random.seed(2016)
 n_examples = X.shape[0]
-n_train = n_examples * 0.5
-train_idx = np.random.choice(range(0,int(n_examples)), size=int(n_train), replace=False)
-test_idx = list(set(range(0,n_examples))-set(train_idx))
-X_train = X[train_idx]
-X_test =  X[test_idx]
 def to_onehot(yy):
     yy1 = np.zeros([len(yy), max(yy)+1])
     yy1[np.arange(len(yy)),yy] = 1
     return yy1
-Y_train = to_onehot(map(lambda x: mods.index(lbl[x][0]), train_idx))
-Y_test = to_onehot(map(lambda x: mods.index(lbl[x][0]), test_idx))
+Y = to_onehot(map(lambda x: mods.index(lbl[x][0]), range(0,n_examples)))
 
 
-# In[4]:
+# In[154]:
 
 
-in_shp = list(X_train.shape[1:])
-print X_train.shape, in_shp
-classes = mods
+print "X props"
+print X.shape, list(X.shape[1:])
+print "Y props"
+print Y.shape , list(Y.shape[1:])
+print "classes"
+print mods
+print "snrs"
+print len(X_snr)
+print "mods"
+print len(X_mod)
 
 
-# In[5]:
+# In[155]:
 
 
 def getOverSampledSignal(sample, overSampleFactor):
@@ -68,13 +68,13 @@ def getOverSampledSignal(sample, overSampleFactor):
     return sNew
 
 
-# In[118]:
+# In[156]:
 
 
 def cwt(name,sample):
     iNew = getOverSampledSignal(sample[0], 8)
     qNew = getOverSampledSignal(sample[1], 8)
-    width = 32
+    width = 16
     widths = np.arange(1, width)
     iCwtmatr = signal.cwt(iNew, signal.ricker, widths)
     qCwtmatr = signal.cwt(qNew, signal.ricker, widths)
@@ -93,20 +93,38 @@ def cwt(name,sample):
     plt.close()
 
 
-# In[119]:
+# In[179]:
 
 
-def preprocess(index, sample):
-  name = str(index)+"pic.png"
-  cwt(name, sample)
+def getPath(index, snrs, mods):
+  path = "./data/" + str(mods[index]) + "/" + str(index)+ "_" + str(mods[index]) + "_" + str(snrs[index]) + ".png"
+  print path
+  return path
 
 
-# In[120]:
+# In[180]:
 
 
-for index, item in enumerate(X_train):
-    preprocess(index,item)
-    if index == 50:
+import os
+def mkdir(path):
+  if not os.path.exists(path):
+    os.makedirs(path)
+
+
+# In[181]:
+
+
+mkdir("./data")
+map(lambda x: mkdir("./data/"+x), mods)
+
+
+# In[183]:
+
+
+for index, item in enumerate(X):
+    path = getPath(index, X_snr, X_mod)
+    cwt(path, item)
+    if index == 10000:
       break
 
 
