@@ -17,20 +17,19 @@ from subprocess import call
 
 
 def get_data(data_location):
-    print "getting data from " + data_dir
+    print("getting data from: "+ data_location)
     destination='./data'
     call(['mkdir' ,destination])
-    origin='data_location'+'*'
-    call(['gsutil' ,'-m','cp','-r',origin,destination])
+    call(['gsutil' ,'-m','cp','-r',data_location,destination])
     
     call('ls ./data/')
 
 
 def train():
-    print "demo"
+    print("demo")
 
 def copy_meta_to_bucket():
-    print "demo"
+    print("demo")
 
 
 # Create a function to allow for different training data and other options
