@@ -10,88 +10,47 @@ ML Engine parameters.
 from __future__ import print_function
 
 import argparse
-import pickle  # for handling the new data source
-import h5py  # for saving the model
 import keras
 from datetime import datetime  # for filename conventions
-from keras.models import Sequential
-from keras.layers import Dense, Dropout
-from keras.optimizers import RMSprop
-from tensorflow.python.lib.io import file_io  # for better file I/O
 import sys
+from subprocess import call
 
-batch_size = 128
-num_classes = 10
-epochs = 2
+
+def get_data(data_location):
+    print "getting data from " + data_dir
+    destination='./data'
+    call(['mkdir' ,destination])
+    origin='data_location'+'*'
+    call(['gsutil' ,'-m','cp','-r',origin,destination])
+    
+    call('ls ./data/')
+
+
+def train():
+    print "demo"
+
+def copy_meta_to_bucket():
+    print "demo"
 
 
 # Create a function to allow for different training data and other options
-def train_model(train_file='data/mnist.pkl',
-                job_dir='./tmp/mnist_mlp', **args):
+def train_model(data_location='data/',
+                job_dir='./job_dir', **args):
     # set the logging path for ML Engine logging to Storage bucket
     logs_path = job_dir + '/logs/' + datetime.now().isoformat()
     print('Using logs_path located at {}'.format(logs_path))
 
-    # Reading in the pickle file. Pickle works differently with Python 2 vs 3
-    f = file_io.FileIO(train_file, mode='r')
-    if sys.version_info < (3,):
-        data = pickle.load(f)
-    else:
-        data = pickle.load(f, encoding='bytes')
+    get_data(data_location)
+    train()
+    copy_meta_to_bucket()
 
-    # the data, shuffled and split between train and test sets
-    (x_train, y_train), (x_test, y_test) = data
-
-    x_train = x_train.reshape(60000, 784)
-    x_test = x_test.reshape(10000, 784)
-    x_train = x_train.astype('float32')
-    x_test = x_test.astype('float32')
-    x_train /= 255
-    x_test /= 255
-    print(x_train.shape[0], 'train samples')
-    print(x_test.shape[0], 'test samples')
-
-    # convert class vectors to binary class matrices
-    y_train = keras.utils.to_categorical(y_train, num_classes)
-    y_test = keras.utils.to_categorical(y_test, num_classes)
-
-    model = Sequential()
-    model.add(Dense(512, activation='relu', input_shape=(784,)))
-    model.add(Dropout(0.2))
-    model.add(Dense(512, activation='relu'))
-    model.add(Dropout(0.2))
-    model.add(Dense(10, activation='softmax'))
-
-    model.summary()
-
-    model.compile(loss='categorical_crossentropy',
-                  optimizer=RMSprop(),
-                  metrics=['accuracy'])
-
-    history = model.fit(x_train, y_train,
-                        batch_size=batch_size,
-                        epochs=epochs,
-                        verbose=1,
-                        validation_data=(x_test, y_test))
-
-    score = model.evaluate(x_test, y_test, verbose=0)
-    print('Test loss:', score[0])
-    print('Test accuracy:', score[1])
-
-    # Save the model locally
-    model.save('model.h5')
-
-    # Save the model to the Cloud Storage bucket's jobs directory
-    with file_io.FileIO('model.h5', mode='r') as input_f:
-        with file_io.FileIO(job_dir + '/model.h5', mode='w+') as output_f:
-            output_f.write(input_f.read())
 
 
 if __name__ == '__main__':
     # Parse the input arguments for common Cloud ML Engine options
     parser = argparse.ArgumentParser()
     parser.add_argument(
-      '--train-file',
+      '--data-location',
       help='Cloud Storage bucket or local path to training data')
     parser.add_argument(
       '--job-dir',
