@@ -9,4 +9,4 @@ gcloud ml-engine jobs submit training $JOB_NAME \
     --package-path ./trainer \
     --region $REGION \
     -- \
-    --data-location gs://$BUCKET_NAME/3/*
+    --data-location gs://$BUCKET_NAME/3

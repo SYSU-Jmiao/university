@@ -12,24 +12,22 @@ from __future__ import print_function
 import argparse
 import keras
 from datetime import datetime  # for filename conventions
-import sys
-from subprocess import call
+import os
+from subprocess import check_call
 
 
 def get_data(data_location):
     print("getting data from: "+ data_location)
-    destination='./data'
-    call(['mkdir' ,destination])
-    call(['gsutil' ,'-m','cp','-r',data_location,destination])
-    
-    call('ls ./data/')
+    tmp_path = '/tmp/data'
+    os.mkdir(tmp_path)
+    check_call(['gsutil', '-m', '-q', 'cp', '-r',data_location,tmp_path])
 
 
 def train():
-    print("demo")
+    print("train")
 
 def copy_meta_to_bucket():
-    print("demo")
+    print("copy meta")
 
 
 # Create a function to allow for different training data and other options
