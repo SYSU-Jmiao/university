@@ -11,9 +11,16 @@ from __future__ import print_function
 
 import argparse
 import keras
+from keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img  
+from keras.models import Sequential  
+from keras.layers import Dropout, Flatten, Dense  
+from keras import applications  
+from keras.utils.np_utils import to_categorical
 from datetime import datetime  # for filename conventions
 import os
+import math  
 from subprocess import check_call
+import numpy as np
 
 
 def get_data(data_location):
@@ -23,8 +30,62 @@ def get_data(data_location):
     check_call(['gsutil', '-m', '-q', 'cp', '-r',data_location,tmp_path])
 
 
+def save_bottlebeck_features():
+    batch_size = 60   
+    epochs = 20  
+    img_width, img_height = 224, 224  
+
+    train_data_dir = '/tmp/data/3/train'  
+    validation_data_dir = '/tmp/data/3/validation'  
+
+    # build the VGG16 network
+    model = applications.VGG16(include_top=False, weights='imagenet')
+
+    datagen = ImageDataGenerator(rescale=1. / 255)
+
+    generator = datagen.flow_from_directory(
+        train_data_dir,
+        target_size=(img_width, img_height),
+        batch_size=batch_size,
+        class_mode=None,
+        shuffle=False)
+
+    print(len(generator.filenames))
+    print(generator.class_indices)
+    print(len(generator.class_indices))
+
+    nb_train_samples = len(generator.filenames)
+    num_classes = len(generator.class_indices)
+
+    predict_size_train = int(math.ceil(nb_train_samples / batch_size))
+
+    bottleneck_features_train = model.predict_generator(
+        generator, predict_size_train)
+
+    np.save('bottleneck_features_train.npy', bottleneck_features_train)
+
+    generator = datagen.flow_from_directory(
+        validation_data_dir,
+        target_size=(img_width, img_height),
+        batch_size=batch_size,
+        class_mode=None,
+        shuffle=False)
+
+    nb_validation_samples = len(generator.filenames)
+
+    predict_size_validation = int(
+        math.ceil(nb_validation_samples / batch_size))
+
+    bottleneck_features_validation = model.predict_generator(
+        generator, predict_size_validation)
+
+    np.save('bottleneck_features_validation.npy',
+            bottleneck_features_validation)
+
+
 def train():
     print("train")
+    save_bottlebeck_features()
 
 def copy_meta_to_bucket():
     print("copy meta")
