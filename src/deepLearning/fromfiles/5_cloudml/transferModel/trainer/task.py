@@ -30,7 +30,7 @@ def get_data(data_location):
     check_call(['gsutil', '-m', '-q', 'cp', '-r',data_location,tmp_path])
 
 
-def save_bottlebeck_features():
+def save_bottleneck_features():
     batch_size = 60   
     epochs = 20  
     img_width, img_height = 224, 224  
@@ -83,12 +83,18 @@ def save_bottlebeck_features():
             bottleneck_features_validation)
 
 
-def train():
-    print("train")
-    save_bottlebeck_features()
+def copy_bottleneck_features_to_bucket(job_dir):
+    print("save bottleneck features")
+    check_call(['gsutil', 'cp','bottleneck_features_train.npy',job_dir])
+    check_call(['gsutil', 'cp','bottleneck_features_validation.npy',job_dir])
 
-def copy_meta_to_bucket():
-    print("copy meta")
+
+def train(job_dir):
+    print("train")
+    save_bottleneck_features()
+    copy_bottleneck_features_to_bucket(job_dir)
+
+
 
 
 # Create a function to allow for different training data and other options
@@ -99,9 +105,7 @@ def train_model(data_location='data/',
     print('Using logs_path located at {}'.format(logs_path))
 
     get_data(data_location)
-    train()
-    copy_meta_to_bucket()
-
+    train(job_dir)
 
 
 if __name__ == '__main__':
