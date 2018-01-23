@@ -7,6 +7,7 @@ gcloud ml-engine jobs submit training $JOB_NAME \
     --runtime-version 1.0 \
     --module-name trainer.task \
     --package-path ./trainer \
+    --scale-tier basic-gpu \
     --region $REGION \
     -- \
     --data-location gs://$BUCKET_NAME/3
