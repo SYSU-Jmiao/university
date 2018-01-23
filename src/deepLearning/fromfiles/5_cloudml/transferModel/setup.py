@@ -11,5 +11,7 @@ setup(name='mnist_mlp',
       license='Unlicense',
       install_requires=[
           'keras',
+          'h5py',
+          'Pillow',
           'numpy'],
       zip_safe=False)
