@@ -173,6 +173,7 @@ def train_top_model(job_dir):
 
     model.save_weights(top_model_weights_path)
     check_call(['gsutil', 'cp',top_model_weights_path,job_dir])
+    check_call(['gsutil', 'cp', '-r','./logs',job_dir])
 
     (eval_loss, eval_accuracy) = model.evaluate(
         validation_data, validation_labels, batch_size=batch_size, verbose=1)
