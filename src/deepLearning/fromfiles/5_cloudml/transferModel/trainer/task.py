@@ -38,7 +38,7 @@ def save_bottleneck_features():
     train_data_dir = '/tmp/data/3/train'  
     validation_data_dir = '/tmp/data/3/validation'  
 
-    # build the VGG16 network
+    # Get the pre-trained model
     model = applications.VGG16(include_top=False, weights='imagenet')
 
     datagen = ImageDataGenerator(rescale=1. / 255)
@@ -89,10 +89,10 @@ def copy_bottleneck_features_to_bucket(job_dir):
     check_call(['gsutil', 'cp','bottleneck_features_validation.npy',job_dir])
 
 
-def train(job_dir):
+def train_bottleneck_features(job_dir):
     print("train")
     save_bottleneck_features()
-    copy_bottleneck_features_to_bucket(job_dir)
+    #copy_bottleneck_features_to_bucket(job_dir)
 
 def train_top_model(job_dir):
     train_data_dir = '/tmp/data/3/train'  
@@ -150,7 +150,7 @@ def train_top_model(job_dir):
     
     
     # Freeze the layers which you don't want to train. Here I am freezing the first 5 layers.
-    for layer in model.layers[:5]:
+    for layer in model.layers[:2]:
         layer.trainable = False
 
 
@@ -167,7 +167,7 @@ def train_top_model(job_dir):
                         callbacks = [
                             keras.callbacks.ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=True, mode='auto'),
                             keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, verbose=0, mode='auto'),
-                            keras.callbacks.TensorBoard(log_dir='./logs', histogram_freq=10, write_graph=True, write_images=True)
+                            keras.callbacks.TensorBoard(log_dir='./logs', write_graph=True, write_images=False)
                         ]
                        )
 
@@ -189,7 +189,7 @@ def train_model(data_location='data/',
     print('Using logs_path located at {}'.format(logs_path))
 
     get_data(data_location)
-    train(job_dir)
+    train_bottleneck_features(job_dir)
     train_top_model(job_dir)
 
 
