@@ -21,22 +21,25 @@ import os
 import math  
 from subprocess import check_call
 import numpy as np
+from my_utils import create_db
 
 
 def get_data(data_location):
     print("getting data from: "+ data_location)
-    tmp_path = '/tmp/data'
-    os.mkdir(tmp_path)
+    tmp_path = "/tmp"
     check_call(['gsutil', '-m', '-q', 'cp', '-r',data_location,tmp_path])
+    data_location = path.join(tmp_path,data_location)
+    print("creating from:" + data_location + ", to" + "/tmp/generated")
+    create_db(data_location, "/tmp/generated")
 
 
 def save_bottleneck_features():
-    batch_size = 60   
+    batch_size = 100   
     epochs = 20  
     img_width, img_height = 224, 224  
 
-    train_data_dir = '/tmp/data/3/train'  
-    validation_data_dir = '/tmp/data/3/validation'  
+    train_data_dir = '/tmp/generated/train'  
+    validation_data_dir = '/tmp/generated/validation'  
 
     # Get the pre-trained model
     model = applications.VGG16(include_top=False, weights='imagenet')
