@@ -22,6 +22,7 @@ import math
 from subprocess import check_call
 import numpy as np
 from my_utils import create_db
+from os import path, mkdir
 
 
 def get_data(data_location):
