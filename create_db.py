@@ -1,14 +1,18 @@
 #!/usr/bin/env python 
 import sys
+import glob
+from os import path
 
 
-def get_classes_from_folders():
-    print "hello"
-    return []
+def get_classes_from_folders(data_dir):
+    classes_dir = path.join(data_dir,'data/*')
+    classes =  glob.glob(classes_dir)
+    print "classes:" + str(classes) + ", location:" + classes_dir
+    return classes
 
 
 def create_db(data_dir):
-    classes = get_classes_from_folders()
+    classes = get_classes_from_folders(data_dir)
     if len(classes) != 11:
         return 'failed to collect classes'
     return 
