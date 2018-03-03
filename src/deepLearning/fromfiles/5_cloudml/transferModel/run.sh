@@ -10,4 +10,4 @@ gcloud ml-engine jobs submit training $JOB_NAME \
     --scale-tier basic-gpu \
     --region $REGION \
     -- \
-    --data-location gs://$BUCKET_NAME/data/cwt_i_over_q_clean/
+    --data-location gs://$BUCKET_NAME/data/cwt_i_over_q_clean

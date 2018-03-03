@@ -29,7 +29,8 @@ def get_data(data_location):
     print("getting data from: "+ data_location)
     tmp_path = "/tmp"
     check_call(['gsutil', '-m', '-q', 'cp', '-r',data_location,tmp_path])
-    data_location = path.join(tmp_path,data_location)
+    check_call(['ls','/tmp/'])
+    data_location = path.join(tmp_path,data_location.strip("gs://yonidavidson-university/"))
     print("creating from:" + data_location + ", to" + "/tmp/generated")
     create_db(data_location, "/tmp/generated")
 
