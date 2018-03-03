@@ -30,9 +30,9 @@ def get_data(data_location):
     tmp_path = "/tmp"
     check_call(['gsutil', '-m', '-q', 'cp', '-r',data_location,tmp_path])
     check_call(['ls','/tmp/'])
-    data_location = path.join(tmp_path,data_location.strip("gs://yonidavidson-university/"))
-    print("creating from:" + data_location + ", to" + "/tmp/generated")
-    create_db(data_location, "/tmp/generated")
+    data_origin = path.join(tmp_path, data_location.split("/")[-1])
+    print("creating from:" + data_origin + ", to" + "/tmp/generated")
+    create_db(data_origin, "/tmp/generated")
 
 
 def save_bottleneck_features():
@@ -100,8 +100,8 @@ def train_bottleneck_features(job_dir):
     #copy_bottleneck_features_to_bucket(job_dir)
 
 def train_top_model(job_dir):
-    train_data_dir = '/tmp/data/3/train'  
-    validation_data_dir = '/tmp/data/3/validation' 
+    train_data_dir = '/tmp/generated/train'  
+    validation_data_dir = '/tmp/generated/validation' 
     img_width, img_height = 224, 224  
     batch_size = 60
     epochs = 100 
