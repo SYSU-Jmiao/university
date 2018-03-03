@@ -2,3 +2,4 @@ VIRTUAL
 *.pyc
 *.h5
 logs
+.vscode
