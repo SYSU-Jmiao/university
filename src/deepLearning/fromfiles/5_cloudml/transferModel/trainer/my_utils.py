@@ -15,13 +15,16 @@ def get_classes_from_folders(data_dir):
 def get_data_sets(data_location):
     # TODO: get this as variable
     DIVISOR = 100
-    # TODO: get this as variable
     PREDICAT = lambda x: int(x.split(".png")[0].split("_")[-1]) >= 4
+    VALIDATION_SET = 0.5
+
     all_files = glob.glob(path.join(data_location,'*'))
     partial_list = filter(PREDICAT, all_files)
     random.shuffle(partial_list,random.random)
-    train_set = partial_list[:len(partial_list)/2]
-    validation_set = partial_list[len(partial_list)/2:]
+
+    selected_index = int(len(partial_list)*(1-VALIDATION_SET))
+    train_set = partial_list[:selected_index]
+    validation_set = partial_list[selected_index:]
     
     del train_set[:len(train_set) % DIVISOR]
     del validation_set[:len(validation_set) % DIVISOR]
