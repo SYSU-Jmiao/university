@@ -6,11 +6,12 @@ import matplotlib.pyplot as plt
 import os
 
 
-def create_image(index,value,label,snr):
-    print index
-    print value
-    print label
-    print snr
+def create_image(index,value,label,snr,base_path):
+    image_path = os.path.join(base_path,label)
+    image_name = str(index)+"_"+label+"_"+snr
+    print os.path.join(image_path,image_name)
+    i = value[0]
+    q = value[1]
 
 def create_folder(directory):    
     if not os.path.exists(directory):
@@ -25,4 +26,4 @@ for p in data:
     snr = str(p[1])
     print "label:"+label+ ", SNR:"+ snr
     create_folder(os.path.join(BASE_PATH,label))
-    [create_image(index, value,label,snr) for index, value in enumerate(data[p])]
+    [create_image(index, value,label,snr, BASE_PATH) for index, value in enumerate(data[p])]
