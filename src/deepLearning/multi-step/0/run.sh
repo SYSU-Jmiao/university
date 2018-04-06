@@ -9,4 +9,5 @@ gcloud ml-engine jobs submit training $JOB_NAME \
     --package-path ./trainer \
     --scale-tier basic-gpu \
     --region $REGION \
+    -- \
     --data-location gs://$BUCKET_NAME/data/RML2016.10a_dict.dat

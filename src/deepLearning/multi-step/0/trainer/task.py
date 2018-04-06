@@ -59,7 +59,7 @@ def train(local_data):
     Y_test = to_onehot(map(lambda x: mods.index(lbl[x][0]), test_idx))
 
     in_shp = list(X_train.shape[1:])
-    print X_train.shape, in_shp
+    print(X_train.shape, in_shp)
     classes = mods
 
     # Build VT-CNN2 Neural Net model using Keras primitives --
