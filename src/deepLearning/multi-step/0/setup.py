@@ -12,6 +12,7 @@ setup(name='base-model',
       install_requires=[
           'keras',
           'comet_ml',
-          'h5py'
+          'h5py',
+          'matplotlib'
       ],
       zip_safe=False)
