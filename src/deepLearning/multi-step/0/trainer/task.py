@@ -6,183 +6,110 @@ model for later use in predictions, uses pickled data from a relative data
 source to avoid re-downloading the data every time, and handles some common
 ML Engine parameters.
 """
-
+# Run your code and go to https://www.comet.ml
 from __future__ import print_function
 
 import argparse
-import keras
-from keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
-from keras.models import Sequential
-from keras.layers import Dropout, Flatten, Dense
-from keras import applications
-from keras.utils.np_utils import to_categorical
 from datetime import datetime  # for filename conventions
-import os
-import math
+from os import path
 from subprocess import check_call
+
+import keras
 import numpy as np
-from my_utils import create_db
-from os import path, mkdir
+# import comet_ml in the top of your file
+from comet_ml import Experiment
+from keras.layers import Dropout, Flatten, Dense
 
 
-def get_data(data_location):
+def get_data(data_location, local_data):
     print("getting data from: " + data_location)
-    tmp_path = "/tmp"
-    check_call(['gsutil', '-m', '-q', 'cp', '-r', data_location, tmp_path])
+    check_call(['gsutil', '-m', '-q', 'cp', '-r', data_location, local_data])
     check_call(['ls', '/tmp/'])
-    data_origin = path.join(tmp_path, data_location.split("/")[-1])
-    print("creating from:" + data_origin + ", to" + "/tmp/generated")
-    create_db(data_origin, "/tmp/generated")
 
+def train(local_data):
+    # Load the dataset ...
+    #  You will need to seperately download or generate this file
+    Xd = cPickle.load(open(local_data, 'rb'))
+    snrs, mods = map(lambda j: sorted(list(set(map(lambda x: x[j], Xd.keys())))), [1, 0])
+    X = []
+    lbl = []
+    for mod in mods:
+        for snr in snrs:
+            X.append(Xd[(mod, snr)])
+            for i in range(Xd[(mod, snr)].shape[0]):  lbl.append((mod, snr))
+    X = np.vstack(X)
 
-def save_bottleneck_features():
-    batch_size = 100
-    epochs = 20
-    img_width, img_height = 224, 224
+    # Partition the data
+    #  into training and test sets of the form we can train/test on
+    #  while keeping SNR and Mod labels handy for each
+    np.random.seed(2016)
+    n_examples = X.shape[0]
+    n_train = n_examples * 0.5
+    train_idx = np.random.choice(range(0, int(n_examples)), size=int(n_train), replace=False)
+    test_idx = list(set(range(0, n_examples)) - set(train_idx))
+    X_train = X[train_idx]
+    X_test = X[test_idx]
 
-    train_data_dir = '/tmp/generated/train'
-    validation_data_dir = '/tmp/generated/validation'
+    def to_onehot(yy):
+        yy1 = np.zeros([len(yy), max(yy) + 1])
+        yy1[np.arange(len(yy)), yy] = 1
+        return yy1
 
-    # Get the pre-trained model
-    model = applications.VGG16(include_top=False, weights='imagenet')
+    Y_train = to_onehot(map(lambda x: mods.index(lbl[x][0]), train_idx))
+    Y_test = to_onehot(map(lambda x: mods.index(lbl[x][0]), test_idx))
 
-    datagen = ImageDataGenerator(rescale=1. / 255)
+    in_shp = list(X_train.shape[1:])
+    print X_train.shape, in_shp
+    classes = mods
 
-    generator = datagen.flow_from_directory(
-        train_data_dir,
-        target_size=(img_width, img_height),
-        batch_size=batch_size,
-        class_mode=None,
-        shuffle=False)
+    # Build VT-CNN2 Neural Net model using Keras primitives --
+    #  - Reshape [N,2,128] to [N,1,2,128] on input
+    #  - Pass through 2 2DConv/ReLu layers
+    #  - Pass through 2 Dense layers (ReLu and Softmax)
+    #  - Perform categorical cross entropy optimization
 
-    print(len(generator.filenames))
-    print(generator.class_indices)
-    print(len(generator.class_indices))
+    dr = 0.5  # dropout rate (%)
+    model = models.Sequential()
+    model.add(Reshape(in_shp + [1], input_shape=in_shp))
+    model.add(ZeroPadding2D((0, 2)))
+    model.add(Conv2D(256, (1, 3), kernel_initializer="glorot_uniform", name="conv1", activation="relu", padding="valid"))
+    model.add(Dropout(dr))
+    model.add(ZeroPadding2D((0, 2)))
+    model.add(Conv2D(80, (2, 3), padding="valid", activation="relu", name="conv2", kernel_initializer='glorot_uniform'))
+    model.add(Dropout(dr))
+    model.add(Flatten())
+    model.add(Dense(256, kernel_initializer="he_normal", activation="relu", name="dense1"))
+    model.add(Dropout(dr))
+    model.add(Dense(11, kernel_initializer="he_normal", name="dense2"))
+    model.add(Activation('softmax'))
+    model.add(Reshape([len(classes)]))
+    model.compile(loss='categorical_crossentropy', optimizer='adam')
+    model.summary()
 
-    nb_train_samples = len(generator.filenames)
-    num_classes = len(generator.class_indices)
+    # Set up some params
+    nb_epoch = 100  # number of epochs to train on
+    batch_size = 200  # training batch size
 
-    predict_size_train = int(math.ceil(nb_train_samples / batch_size))
-
-    bottleneck_features_train = model.predict_generator(
-        generator, predict_size_train)
-
-    np.save('bottleneck_features_train.npy', bottleneck_features_train)
-
-    generator = datagen.flow_from_directory(
-        validation_data_dir,
-        target_size=(img_width, img_height),
-        batch_size=batch_size,
-        class_mode=None,
-        shuffle=False)
-
-    nb_validation_samples = len(generator.filenames)
-
-    predict_size_validation = int(
-        math.ceil(nb_validation_samples / batch_size))
-
-    bottleneck_features_validation = model.predict_generator(
-        generator, predict_size_validation)
-
-    np.save('bottleneck_features_validation.npy',
-            bottleneck_features_validation)
-
-
-def copy_bottleneck_features_to_bucket(job_dir):
-    print("save bottleneck features")
-    check_call(['gsutil', 'cp', 'bottleneck_features_train.npy', job_dir])
-    check_call(['gsutil', 'cp', 'bottleneck_features_validation.npy', job_dir])
-
-
-def train_bottleneck_features(job_dir):
-    print("train")
-    save_bottleneck_features()
-    # copy_bottleneck_features_to_bucket(job_dir)
-
-
-def train_top_model(job_dir):
-    train_data_dir = '/tmp/generated/train'
-    validation_data_dir = '/tmp/generated/validation'
-    img_width, img_height = 224, 224
-    batch_size = 60
-    epochs = 100
-    top_model_weights_path = 'bottleneck_fc_model.h5'
-
-    datagen_top = ImageDataGenerator(rescale=1. / 255)
-    generator_top = datagen_top.flow_from_directory(
-        train_data_dir,
-        target_size=(img_width, img_height),
-        batch_size=batch_size,
-        class_mode='categorical',
-        shuffle=False)
-
-    nb_train_samples = len(generator_top.filenames)
-    num_classes = len(generator_top.class_indices)
-
-    # save the class indices to use use later in predictions
-    np.save('class_indices.npy', generator_top.class_indices)
-
-    # load the bottleneck features saved earlier
-    train_data = np.load('bottleneck_features_train.npy')
-
-    # get the class lebels for the training data, in the original order
-    train_labels = generator_top.classes
-
-    # https://github.com/fchollet/keras/issues/3467
-    # convert the training labels to categorical vectors
-    train_labels = to_categorical(train_labels, num_classes=num_classes)
-
-    generator_top = datagen_top.flow_from_directory(
-        validation_data_dir,
-        target_size=(img_width, img_height),
-        batch_size=batch_size,
-        class_mode=None,
-        shuffle=False)
-
-    nb_validation_samples = len(generator_top.filenames)
-
-    validation_data = np.load('bottleneck_features_validation.npy')
-
-    validation_labels = generator_top.classes
-    validation_labels = to_categorical(
-        validation_labels, num_classes=num_classes)
-
-    model = Sequential()
-    model.add(Flatten(input_shape=train_data.shape[1:]))
-    model.add(Dense(256, activation='relu'))
-    model.add(Dropout(0.5))
-    model.add(Dense(num_classes, activation='softmax'))
-
-    # Freeze the layers which you don't want to train. Here I am freezing the first 5 layers.
-    for layer in model.layers[:2]:
-        layer.trainable = False
-
-    model.compile(optimizer='adam',
-                  loss='categorical_crossentropy', metrics=['accuracy'])
-
+    # perform training ...
+    #   - call the main training loop in keras for our network+dataset
     filepath = 'convmodrecnets_CNN2_0.5.wts.h5'
-
-    history = model.fit(train_data, train_labels,
-                        epochs=epochs,
+    history = model.fit(X_train,
+                        Y_train,
                         batch_size=batch_size,
-                        validation_data=(validation_data, validation_labels),
+                        nb_epoch=nb_epoch,
+                        verbose=2,
+                        validation_data=(X_test, Y_test),
                         callbacks=[
                             keras.callbacks.ModelCheckpoint(filepath, monitor='val_loss', verbose=0, save_best_only=True, mode='auto'),
                             keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, verbose=0, mode='auto'),
-                            keras.callbacks.TensorBoard(log_dir='./logs', write_graph=True, write_images=False)
-                        ]
-                        )
+                            keras.callbacks.TensorBoard(log_dir='./logs', histogram_freq=0, write_graph=True, write_images=False)
+                        ])
+    # we re-load the best weights once training is finished
+    model.load_weights(filepath)
 
-    model.save_weights(top_model_weights_path)
-    check_call(['gsutil', 'cp', top_model_weights_path, job_dir])
-    check_call(['gsutil', 'cp', '-r', './logs', job_dir])
-
-    (eval_loss, eval_accuracy) = model.evaluate(
-        validation_data, validation_labels, batch_size=batch_size, verbose=1)
-
-    print("[INFO] accuracy: {:.2f}%".format(eval_accuracy * 100))
-    print("[INFO] Loss: {}".format(eval_loss))
-
+    # Show simple version of performance
+    score = model.evaluate(X_test, Y_test, verbose=0, batch_size=batch_size)
+    print(score)
 
 # Create a function to allow for different training data and other options
 def train_model(data_location='data/',
@@ -191,12 +118,15 @@ def train_model(data_location='data/',
     logs_path = job_dir + '/logs/' + datetime.now().isoformat()
     print('Using logs_path located at {}'.format(logs_path))
 
-    get_data(data_location)
-    train_bottleneck_features(job_dir)
-    train_top_model(job_dir)
+    local_data = path.join("/tmp", "data_dict.dat")
+    get_data(data_location, local_data)
+    train(local_data)
 
 
 if __name__ == '__main__':
+    # Add the following code anywhere in your machine learning file
+    experiment = Experiment(api_key="xlfxZoR6K87Hd3t1xTKiI6N44")
+
     # Parse the input arguments for common Cloud ML Engine options
     parser = argparse.ArgumentParser()
     parser.add_argument(
