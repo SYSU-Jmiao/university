@@ -14,9 +14,12 @@ import cPickle
 
 
 def get_data(data_location, local_data):
-    print("getting data from: " + data_location)
-    check_call(['gsutil', '-m', '-q', 'cp', '-r', data_location, local_data])
-    check_call(['ls', '/tmp/'])
+    if path.exists(local_data):
+        print("data exists, continue.: " + data_location)
+    else:
+        print("getting data from: " + data_location)
+        check_call(['gsutil', '-m', '-q', 'cp', '-r', data_location, local_data])
+        check_call(['ls', '/tmp/'])
 
 
 def train(local_data):
@@ -80,7 +83,7 @@ def train(local_data):
     model.summary()
 
     # Set up some params
-    nb_epoch = 100  # number of epochs to train on
+    nb_epoch = 1  # number of epochs to train on
     batch_size = 200  # training batch size
 
     # perform training ...
