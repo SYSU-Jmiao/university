@@ -3,3 +3,4 @@ VIRTUAL
 *.h5
 logs
 .vscode
+.idea
