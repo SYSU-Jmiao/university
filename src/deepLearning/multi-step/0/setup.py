@@ -11,6 +11,7 @@ setup(name='base-model',
       license='Unlicense',
       install_requires=[
           'keras',
-          'comet_ml'
+          'comet_ml',
+          'h5py'
       ],
       zip_safe=False)

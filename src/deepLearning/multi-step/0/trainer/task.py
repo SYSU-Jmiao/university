@@ -1,30 +1,23 @@
-"""
-cation of the mnist_mlp.py example on the Keras github repo.
 
-This file is better suited to run on Cloud ML Engine's servers. It saves the
-model for later use in predictions, uses pickled data from a relative data
-source to avoid re-downloading the data every time, and handles some common
-ML Engine parameters.
-"""
-# Run your code and go to https://www.comet.ml
-from __future__ import print_function
+from comet_ml import Experiment
 
 import argparse
-from datetime import datetime  # for filename conventions
+from datetime import datetime
 from os import path
 from subprocess import check_call
 
 import keras
 import numpy as np
-# import comet_ml in the top of your file
-from comet_ml import Experiment
-from keras.layers import Dropout, Flatten, Dense
+from keras import models
+from keras.layers import Dropout, Flatten, Dense, Reshape, ZeroPadding2D, Conv2D, Activation
+import cPickle
 
 
 def get_data(data_location, local_data):
     print("getting data from: " + data_location)
     check_call(['gsutil', '-m', '-q', 'cp', '-r', data_location, local_data])
     check_call(['ls', '/tmp/'])
+
 
 def train(local_data):
     # Load the dataset ...
