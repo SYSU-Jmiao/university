@@ -26,4 +26,25 @@ for p in data:
     snr = str(p[1])
     print "label:"+label+ ", SNR:"+ snr
     create_folder(os.path.join(BASE_PATH,label))
-    [create_image(index, value,label,snr, BASE_PATH) for index, value in enumerate(data[p])]
+    [create_image(index, value,label,snr, BASE_PATH) for index, value in enumerate(data[p])]    
+
+
+    ->
+    AM,FM(GROUP)
+
+    FM->
+    QPSK(GROUP)
+    QAM(GROUP)
+    FM
+    GFSK
+
+    QPSK(8PSK,QPSK,)
+
+Chain of models...!
+
+
+
+
+
+
+Encryption.
