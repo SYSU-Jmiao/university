@@ -2,7 +2,7 @@ from comet_ml import Experiment
 
 import argparse
 from datetime import datetime
-from os import path
+from os import path, mkdir
 from subprocess import check_call
 
 import keras
@@ -13,6 +13,7 @@ import cPickle
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
+import uuid
 
 
 def get_data(data_location, local_data):
@@ -24,7 +25,7 @@ def get_data(data_location, local_data):
         check_call(['ls', '/tmp/'])
 
 
-def train(local_data):
+def train(local_data, job_dir):
     # Load the dataset ...
     #  You will need to seperately download or generate this file
     Xd = cPickle.load(open(local_data, 'rb'))
@@ -85,7 +86,7 @@ def train(local_data):
     model.summary()
 
     # Set up some params
-    nb_epoch = 1  # number of epochs to train on
+    nb_epoch = 100  # number of epochs to train on
     batch_size = 200  # training batch size
 
     # perform training ...
@@ -111,11 +112,16 @@ def train(local_data):
 
 
     # ****************#
+    meta_graphs = "/tmp/meta"
+    mkdir(meta_graphs)
+
     plt.figure()
     plt.title('Training performance')
     plt.plot(history.epoch, history.history['loss'], label='train loss+error')
     plt.plot(history.epoch, history.history['val_loss'], label='val_error')
     plt.legend()
+
+    plt.savefig(path.join(meta_graphs,"training_performance.png"))
 
     def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Blues, labels=[]):
         plt.imshow(cm, interpolation='nearest', cmap=cmap)
@@ -127,6 +133,7 @@ def train(local_data):
         plt.tight_layout()
         plt.ylabel('True label')
         plt.xlabel('Predicted label')
+        plt.savefig(path.join(meta_graphs, str(uuid.uuid4())+"_confusion_matrix.png"))
 
     # Plot confusion matrix
     test_Y_hat = model.predict(X_test, batch_size=batch_size)
@@ -166,7 +173,7 @@ def train(local_data):
         acc[snr] = 1.0 * cor / (cor + ncor)
 
     print(acc)
-    fd = open('results_cnn2_d0.5.dat', 'wb')
+    fd = open(path.join(meta_graphs,'results_cnn2_d0.5.dat'), 'wb')
     cPickle.dump(("CNN2", 0.5, acc), fd)
 
     # Plot accuracy curve
@@ -174,6 +181,10 @@ def train(local_data):
     plt.xlabel("Signal to Noise Ratio")
     plt.ylabel("Classification Accuracy")
     plt.title("CNN2 Classification Accuracy on RadioML 2016.10 Alpha")
+    plt.savefig(path.join(meta_graphs, "Accuracy.png"))
+
+    check_call(['ls', meta_graphs])
+    check_call(['gsutil', 'cp', '-r', meta_graphs, job_dir])
 
 
 # Create a function to allow for different training data and other options
@@ -185,7 +196,7 @@ def train_model(data_location='data/',
 
     local_data = path.join("/tmp", "data_dict.dat")
     get_data(data_location, local_data)
-    train(local_data)
+    train(local_data, job_dir)
 
 
 if __name__ == '__main__':
