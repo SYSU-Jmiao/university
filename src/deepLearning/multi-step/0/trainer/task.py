@@ -122,6 +122,7 @@ def train(local_data, job_dir):
     plt.legend()
 
     plt.savefig(path.join(meta_graphs,"training_performance.png"))
+    plt.close('all')
 
     def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Blues, labels=[]):
         plt.imshow(cm, interpolation='nearest', cmap=cmap)
@@ -134,6 +135,7 @@ def train(local_data, job_dir):
         plt.ylabel('True label')
         plt.xlabel('Predicted label')
         plt.savefig(path.join(meta_graphs, str(uuid.uuid4())+"_confusion_matrix.png"))
+        plt.close('all')
 
     # Plot confusion matrix
     test_Y_hat = model.predict(X_test, batch_size=batch_size)
@@ -182,6 +184,7 @@ def train(local_data, job_dir):
     plt.ylabel("Classification Accuracy")
     plt.title("CNN2 Classification Accuracy on RadioML 2016.10 Alpha")
     plt.savefig(path.join(meta_graphs, "Accuracy.png"))
+    plt.close('all')
 
     check_call(['ls', meta_graphs])
     check_call(['gsutil', 'cp', '-r', meta_graphs, job_dir])
