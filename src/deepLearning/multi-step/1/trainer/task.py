@@ -50,8 +50,12 @@ def train(local_data, job_dir):
         if modulation in grouper.keys():
             new_modulation = grouper[modulation]
             new_key = (new_modulation, snr)
-            print("copying from" + str(p) + " to " + str(new_key))
-            Xd[(new_modulation, snr)] = data[p]
+            if new_key in Xd.keys():
+                print("extending from" + str(p) + " to " + str(new_key))
+                Xd[new_key] = np.concatenate([Xd[new_key], data[p]])
+            else:
+                print("copying from" + str(p) + " to " + str(new_key))
+                Xd[new_key] = data[p]
 
     snrs, mods = map(lambda j: sorted(list(set(map(lambda x: x[j], Xd.keys())))), [1, 0])
     X = []
