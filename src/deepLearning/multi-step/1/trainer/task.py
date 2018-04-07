@@ -31,16 +31,16 @@ def train(local_data, job_dir):
     data = cPickle.load(open(local_data, 'rb'))
 
     grouper = {'8PSK': 'group_2_8PSK_BPSK_QPSK',
-     'AM-DSB': 'group_1_AM_DSB_AM_SSB',
-     'AM-SSB': 'group_1_AM_DSB_AM_SSB',
+     'AM-DSB': 'group_1_AM_DSB_AM_SSB_WBFM',
+     'AM-SSB': 'group_1_AM_DSB_AM_SSB_WBFM',
      'BPSK': 'group_2_8PSK_BPSK_QPSK',
      'CPFSK': 'group_3_CPFSK_GFSK',
      'GFSK': 'group_3_CPFSK_GFSK',
      'PAM4': 'group_4_PAM4',
-     'QAM16': 'group_6_QAM16_QAM64',
-     'QAM64': 'group_6_QAM16_QAM64',
+     'QAM16': 'group_5_QAM16_QAM64',
+     'QAM64': 'group_5_QAM16_QAM64',
      'QPSK': 'group_2_8PSK_BPSK_QPSK',
-     'WBFM': 'group_5_WBFM'}
+     'WBFM': 'group_1_AM_DSB_AM_SSB_WBFM'}
 
     Xd = {}
 
