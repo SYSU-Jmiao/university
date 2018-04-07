@@ -103,7 +103,7 @@ def train(local_data, job_dir):
     model.add(Flatten())
     model.add(Dense(256, kernel_initializer="he_normal", activation="relu", name="dense1"))
     model.add(Dropout(dr))
-    model.add(Dense(11, kernel_initializer="he_normal", name="dense2"))
+    model.add(Dense(len(classes), kernel_initializer="he_normal", name="dense2"))
     model.add(Activation('softmax'))
     model.add(Reshape([len(classes)]))
     model.compile(loss='categorical_crossentropy', optimizer='adam')
