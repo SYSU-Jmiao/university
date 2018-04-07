@@ -28,7 +28,31 @@ def get_data(data_location, local_data):
 def train(local_data, job_dir):
     # Load the dataset ...
     #  You will need to seperately download or generate this file
-    Xd = cPickle.load(open(local_data, 'rb'))
+    data = cPickle.load(open(local_data, 'rb'))
+
+    grouper = {'8PSK': 'group_2_8PSK_BPSK_QPSK',
+     'AM-DSB': 'group_1_AM_DSB_AM_SSB',
+     'AM-SSB': 'group_1_AM_DSB_AM_SSB',
+     'BPSK': 'group_2_8PSK_BPSK_QPSK',
+     'CPFSK': 'group_3_CPFSK_GFSK',
+     'GFSK': 'group_3_CPFSK_GFSK',
+     'PAM4': 'group_4_PAM4',
+     'QAM16': 'group_6_QAM16_QAM64',
+     'QAM64': 'group_6_QAM16_QAM64',
+     'QPSK': 'group_2_8PSK_BPSK_QPSK',
+     'WBFM': 'group_5_WBFM'}
+
+    Xd = {}
+
+    for p in data:
+        modulation = p[0]
+        snr = p[1]
+        if modulation in grouper.keys():
+            new_modulation = grouper[modulation]
+            new_key = (new_modulation, snr)
+            print("copying from" + str(p) + " to " + str(new_key))
+            Xd[(new_modulation, snr)] = data[p]
+
     snrs, mods = map(lambda j: sorted(list(set(map(lambda x: x[j], Xd.keys())))), [1, 0])
     X = []
     lbl = []
