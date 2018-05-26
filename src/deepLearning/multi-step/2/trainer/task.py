@@ -1,3 +1,5 @@
+from comet_ml import Experiment
+
 import argparse
 from datetime import datetime
 from os import path, mkdir
@@ -6,7 +8,7 @@ from subprocess import check_call
 import keras
 import numpy as np
 from keras import models
-from keras.layers import Dropout, Flatten, Dense, Reshape, ZeroPadding2D, Conv2D, Activation,LSTM,ConvLSTM2D
+from keras.layers import Dropout, Flatten, Dense, Reshape, ZeroPadding2D, Conv2D, Activation
 import cPickle
 import matplotlib as mpl
 mpl.use('Agg')
@@ -85,20 +87,16 @@ def train(local_data, job_dir):
 
     dr = 0.5  # dropout rate (%)
     model = models.Sequential()
-    # model.add(Reshape(in_shp + [1], input_shape=in_shp))
-    model.add(LSTM(1024,input_shape=in_shp))
-    # model.add(ZeroPadding2D((0, 2)))
-    # model.add(Conv2D(256, (1, 3), kernel_initializer="glorot_uniform", name="conv1", activation="relu", padding="valid"))
-    # model.add(Dropout(dr))
-    # model.add(ZeroPadding2D((0, 2)))
-    # model.add(Conv2D(80, (2, 3), padding="valid", activation="relu", name="conv2", kernel_initializer='glorot_uniform'))
-    # model.add(Dropout(dr))
-    # model.add(LSTM(100,input_shape=(80, (2, 3))))
-    # model.add(Flatten())
-
-    # model.add(Dense(256, kernel_initializer="he_normal", activation="relu", name="dense1"))
-    # model.add(Dropout(dr))
-
+    model.add(Reshape(in_shp + [1], input_shape=in_shp))
+    model.add(ZeroPadding2D((0, 2)))
+    model.add(Conv2D(256, (1, 3), kernel_initializer="glorot_uniform", name="conv1", activation="relu", padding="valid"))
+    model.add(Dropout(dr))
+    model.add(ZeroPadding2D((0, 2)))
+    model.add(Conv2D(80, (2, 3), padding="valid", activation="relu", name="conv2", kernel_initializer='glorot_uniform'))
+    model.add(Dropout(dr))
+    model.add(Flatten())
+    model.add(Dense(256, kernel_initializer="he_normal", activation="relu", name="dense1"))
+    model.add(Dropout(dr))
     model.add(Dense(len(classes), kernel_initializer="he_normal", name="dense2"))
     model.add(Activation('softmax'))
     model.add(Reshape([len(classes)]))
@@ -223,6 +221,9 @@ def train_model(data_location='data/',
 
 
 if __name__ == '__main__':
+    # Add the following code anywhere in your machine learning file
+    experiment = Experiment(api_key="xlfxZoR6K87Hd3t1xTKiI6N44")
+
     # Parse the input arguments for common Cloud ML Engine options
     parser = argparse.ArgumentParser()
     parser.add_argument(
