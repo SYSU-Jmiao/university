@@ -86,7 +86,7 @@ def train(local_data, job_dir):
     dr = 0.5  # dropout rate (%)
     model = models.Sequential()
     # model.add(Reshape(in_shp + [1], input_shape=in_shp))
-    model.add(LSTM(2048,input_shape=in_shp))
+    model.add(LSTM(1024,input_shape=in_shp))
     # model.add(ZeroPadding2D((0, 2)))
     # model.add(Conv2D(256, (1, 3), kernel_initializer="glorot_uniform", name="conv1", activation="relu", padding="valid"))
     # model.add(Dropout(dr))
