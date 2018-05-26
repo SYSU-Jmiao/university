@@ -11,7 +11,6 @@ setup(name='group-classification',
       license='Unlicense',
       install_requires=[
           'keras==2.1.3',
-          'comet_ml',
           'h5py',
           'matplotlib'
       ],

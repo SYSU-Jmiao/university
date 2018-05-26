@@ -1,5 +1,3 @@
-from comet_ml import Experiment
-
 import argparse
 from datetime import datetime
 from os import path, mkdir
@@ -93,6 +91,9 @@ def train(local_data, job_dir):
     model.add(Dropout(dr))
     model.add(ZeroPadding2D((0, 2)))
     model.add(Conv2D(80, (2, 3), padding="valid", activation="relu", name="conv2", kernel_initializer='glorot_uniform'))
+    model.add(Dropout(dr))
+    model.add(ZeroPadding2D((0, 2)))
+    model.add(Conv2D(40, (1, 3), padding="valid", activation="relu", name="conv3", kernel_initializer='glorot_uniform'))
     model.add(Dropout(dr))
     model.add(Flatten())
     model.add(Dense(256, kernel_initializer="he_normal", activation="relu", name="dense1"))
@@ -221,9 +222,6 @@ def train_model(data_location='data/',
 
 
 if __name__ == '__main__':
-    # Add the following code anywhere in your machine learning file
-    experiment = Experiment(api_key="xlfxZoR6K87Hd3t1xTKiI6N44")
-
     # Parse the input arguments for common Cloud ML Engine options
     parser = argparse.ArgumentParser()
     parser.add_argument(
