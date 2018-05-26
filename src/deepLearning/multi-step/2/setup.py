@@ -10,7 +10,7 @@ setup(name='group-classification',
       author_email='yonidavidson@gmail.com',
       license='Unlicense',
       install_requires=[
-          'keras',
+          'keras==2.1.3',
           'comet_ml',
           'h5py',
           'matplotlib'
